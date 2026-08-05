@@ -26,6 +26,14 @@
             <div class="wiki-stats">
                 <span class="stat-text"><strong id="stats-count">10</strong> cataloged platforms</span>
             </div>
+            <button id="contribute-btn" class="contribute-btn">
+                <i data-lucide="plus-circle" class="btn-icon"></i>
+                <span>CONTRIBUTE</span>
+            </button>
+            <button id="auth-btn" class="auth-btn">
+                <i data-lucide="user" class="btn-icon"></i>
+                <span id="auth-btn-text">SIGN IN</span>
+            </button>
             <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
                 <i data-lucide="sun" class="sun-icon"></i>
                 <i data-lucide="moon" class="moon-icon"></i>
@@ -55,6 +63,7 @@
                 <button class="filter-btn" data-category="rifle">RIFLES</button>
                 <button class="filter-btn" data-category="shotgun">SHOTGUNS</button>
                 <button class="filter-btn" data-category="pcc">SMG/PCC</button>
+                <button class="filter-btn" data-category="contributions" id="contributions-tab-btn" style="display: none;">MY CONTRIBUTIONS</button>
             </div>
             <div class="sort-wrapper">
                 <label for="sort-select">SORT BY:</label>
@@ -91,7 +100,13 @@
                     <span class="modal-divider">/</span>
                     <span class="modal-source">From ArmoryDB, the free encyclopedia</span>
                 </div>
-                <h2 id="modal-title">Daniel Defense DDM4V7</h2>
+                <div class="modal-title-row">
+                    <h2 id="modal-title">Daniel Defense DDM4V7</h2>
+                    <button id="delete-article-btn" class="delete-article-btn" onclick="deleteCurrentArticle()">
+                        <i data-lucide="trash-2" class="btn-icon"></i>
+                        <span>DELETE ARTICLE</span>
+                    </button>
+                </div>
             </div>
 
             <div class="modal-body-grid">
@@ -179,6 +194,144 @@
                     </table>
                 </aside>
             </div>
+        </div>
+    </div>
+
+    <!-- Create Article Modal -->
+    <div class="wiki-modal" id="create-modal">
+        <div class="modal-backdrop" onclick="closeCreateModal()"></div>
+        <div class="modal-content create-modal-content">
+            <button class="modal-close" onclick="closeCreateModal()" aria-label="Close form">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <div class="modal-header">
+                <div class="modal-header-meta">
+                    <span class="modal-category">CONTRIBUTION PORTAL</span>
+                    <span class="modal-divider">/</span>
+                    <span class="modal-source">Add a new weapon platform to the database</span>
+                </div>
+                <h2>Create Weapon Encyclopedia Article</h2>
+            </div>
+
+            <form id="create-article-form" onsubmit="handleCreateArticle(event)" class="create-form">
+                <div class="form-body-grid">
+                    <div class="form-fields-container">
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label for="form-name">Firearm Name *</label>
+                                <input type="text" id="form-name" required placeholder="e.g. Glock 17, AK-47..." autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-category">Category *</label>
+                                <select id="form-category" required class="hud-select">
+                                    <option value="handgun">HANDGUN</option>
+                                    <option value="rifle">RIFLE</option>
+                                    <option value="shotgun">SHOTGUN</option>
+                                    <option value="pcc">SMG/PCC</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label for="form-origin">Origin Country</label>
+                                <input type="text" id="form-origin" placeholder="e.g. Austria, United States..." autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-manufacturer">Manufacturer</label>
+                                <input type="text" id="form-manufacturer" placeholder="e.g. Glock, Colt..." autocomplete="off">
+                            </div>
+                        </div>
+
+                        <!-- Autocorrect Fields Section -->
+                        <div class="form-section-header">Specifications & Autocorrect Engine</div>
+                        <p class="form-section-note">Autocorrect suggestions appear below when you match a known platform name.</p>
+
+                        <div class="form-row-three">
+                            <div class="form-group input-suggest-wrapper">
+                                <label for="form-price">Average Price (USD) *</label>
+                                <input type="number" id="form-price" required placeholder="MSRP" min="0" autocomplete="off">
+                                <div class="suggest-box" id="suggest-price-box"></div>
+                            </div>
+                            <div class="form-group input-suggest-wrapper">
+                                <label for="form-weight">Weight (lbs) *</label>
+                                <input type="number" id="form-weight" required placeholder="Empty weight" step="0.01" min="0" autocomplete="off">
+                                <div class="suggest-box" id="suggest-weight-box"></div>
+                            </div>
+                            <div class="form-group input-suggest-wrapper">
+                                <label for="form-caliber">Ammo Used *</label>
+                                <input type="text" id="form-caliber" required placeholder="e.g. 9x19mm NATO" autocomplete="off">
+                                <div class="suggest-box" id="suggest-caliber-box"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-row-three">
+                            <div class="form-group">
+                                <label for="form-action">Action Type</label>
+                                <input type="text" id="form-action" placeholder="e.g. Striker Fired" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-barrel">Barrel Length</label>
+                                <input type="text" id="form-barrel" placeholder="e.g. 4.0 inches" autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label for="form-capacity">Capacity</label>
+                                <input type="text" id="form-capacity" placeholder="e.g. 15 Rounds" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="form-description">Description / Lead Paragraph *</label>
+                            <textarea id="form-description" required rows="3" placeholder="Brief summary of historical context, mechanical operation, and legacy..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-footer">
+                    <button type="button" class="form-btn-secondary" onclick="closeCreateModal()">CANCEL</button>
+                    <button type="submit" class="form-btn-primary">PUBLISH ARTICLE</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="wiki-modal" id="login-modal">
+        <div class="modal-backdrop" onclick="closeLoginModal()"></div>
+        <div class="modal-content auth-modal-content">
+            <button class="modal-close" onclick="closeLoginModal()" aria-label="Close modal">
+                <i data-lucide="x"></i>
+            </button>
+            <div class="modal-header">
+                <div class="modal-header-meta">
+                    <span class="modal-category">AUTHENTICATION PROTOCOL</span>
+                    <span class="modal-divider">/</span>
+                    <span class="modal-source">Secure Goon access to ArmoryDB</span>
+                </div>
+                <h2 id="auth-modal-title">Sign In to ArmoryDB</h2>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="auth-tab-login" onclick="switchAuthTab('login')">LOGIN</button>
+                <button class="auth-tab" id="auth-tab-register" onclick="switchAuthTab('register')">REGISTER</button>
+            </div>
+            <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="auth-form">
+                <div class="form-fields-container">
+                    <div class="form-group">
+                        <label for="auth-username">Goon Code / Username</label>
+                        <input type="text" id="auth-username" required placeholder="e.g. goon1" autocomplete="username">
+                    </div>
+                    <div class="form-group">
+                        <label for="auth-password">Security Decryption / Password</label>
+                        <input type="password" id="auth-password" required placeholder="••••••••" autocomplete="current-password">
+                    </div>
+                    <div id="auth-error-msg" class="auth-error-msg" style="display: none; color: var(--danger); font-size: 0.8rem; font-weight: 500;"></div>
+                </div>
+                <div class="form-footer">
+                    <button type="button" class="form-btn-secondary" onclick="closeLoginModal()">CANCEL</button>
+                    <button type="submit" id="auth-submit-btn" class="form-btn-primary">SIGN IN</button>
+                </div>
+            </form>
         </div>
     </div>
 

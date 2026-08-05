@@ -1,5 +1,5 @@
 // Firearms Catalog Database
-const FIREARMS_DATABASE = [
+const DEFAULT_FIREARMS_DATABASE = [
     {
         id: "glock19",
         name: "GLOCK 19 GEN 5",
@@ -287,6 +287,12 @@ const FIREARMS_DATABASE = [
     }
 ];
 
+let FIREARMS_DATABASE = JSON.parse(localStorage.getItem("armory_db_firearms")) || DEFAULT_FIREARMS_DATABASE;
+
+function saveFirearmsDatabase() {
+    localStorage.setItem("armory_db_firearms", JSON.stringify(FIREARMS_DATABASE));
+}
+
 // App State
 let activeFirearm = null;
 let currentFilters = {
@@ -384,7 +390,10 @@ function renderCatalog() {
                               gun.manufacturer.toLowerCase().includes(currentFilters.search);
         
         // Category filter
-        const matchesCategory = currentFilters.category === "all" || gun.category === currentFilters.category;
+        const matchesCategory = currentFilters.category === "all" || 
+                                (currentFilters.category === "contributions" 
+                                    ? (gun.owner === (currentUser ? currentUser.username : "")) 
+                                    : (gun.category === currentFilters.category));
         
         return matchesSearch && matchesCategory;
     });
@@ -493,6 +502,18 @@ function openDetails(firearmId) {
     renderAccessorySelectors();
     updateBuilderTotals();
     
+    // Toggle delete button visibility based on if this is a custom-contributed article
+    const deleteBtn = document.getElementById("delete-article-btn");
+    if (deleteBtn) {
+        if (typeof resetDeleteButton === "function") resetDeleteButton();
+        const isOwner = activeFirearm.owner === (currentUser ? currentUser.username : "");
+        if (activeFirearm.id.startsWith("custom_") && isOwner) {
+            deleteBtn.style.display = "flex";
+        } else {
+            deleteBtn.style.display = "none";
+        }
+    }
+    
     // Open modal
     detailsModal.classList.add("active");
     lucide.createIcons();
@@ -589,3 +610,454 @@ function updateBuilderTotals() {
 // Attach closeModal function globally so backdrop click can reference it
 window.closeModal = closeModal;
 window.openDetails = openDetails;
+
+// Autocomplete dictionary for popular firearms
+const FIREARM_AUTOCOMPLETE_DICTIONARY = [
+    { name: "Glock 17", category: "handgun", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 499, weight: 1.65, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.49 inches", capacity: "17 Rounds" },
+    { name: "Glock 19", category: "handgun", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 539, weight: 1.88, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.02 inches", capacity: "15 Rounds" },
+    { name: "Colt 1911", category: "handgun", origin: "United States", manufacturer: "Colt's Manufacturing", price: 899, weight: 2.44, caliber: ".45 ACP", action: "Single-Action Semi-Automatic", barrel: "5.0 inches", capacity: "7+1 Rounds" },
+    { name: "Beretta 92FS", category: "handgun", origin: "Italy", manufacturer: "Beretta SpA", price: 675, weight: 2.15, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.9 inches", capacity: "15 Rounds" },
+    { name: "Sig Sauer P226", category: "handgun", origin: "Germany / Switzerland", manufacturer: "Sig Sauer", price: 999, weight: 2.12, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.4 inches", capacity: "15 Rounds" },
+    { name: "Desert Eagle", category: "handgun", origin: "Israel / USA", manufacturer: "Magnum Research", price: 1650, weight: 4.4, caliber: ".50 AE", action: "Gas-Operated Semi-Auto", barrel: "6.0 inches", capacity: "7 Rounds" },
+    { name: "AR-15", category: "rifle", origin: "United States", manufacturer: "Various Manufacturers", price: 950, weight: 6.5, caliber: "5.56x45mm NATO", action: "Direct Impingement", barrel: "16.0 inches", capacity: "30 Rounds" },
+    { name: "M4A1", category: "rifle", origin: "United States", manufacturer: "Colt's Manufacturing", price: 1299, weight: 6.36, caliber: "5.56x45mm NATO", action: "Direct Impingement", barrel: "14.5 inches", capacity: "30 Rounds" },
+    { name: "AK-47", category: "rifle", origin: "Soviet Union", manufacturer: "Izhmash / Zastava", price: 850, weight: 7.9, caliber: "7.62x39mm", action: "Gas-Operated", barrel: "16.3 inches", capacity: "30 Rounds" },
+    { name: "M1 Garand", category: "rifle", origin: "United States", manufacturer: "Springfield Armory", price: 1450, weight: 9.5, caliber: ".30-06 Springfield", action: "Gas-Operated Bolt", barrel: "24.0 inches", capacity: "8 Rounds" },
+    { name: "Remington 870", category: "shotgun", origin: "United States", manufacturer: "Remington Arms", price: 429, weight: 7.0, caliber: "12 Gauge", action: "Pump Action", barrel: "18.5 inches", capacity: "6+1 Rounds" },
+    { name: "Mossberg 590", category: "shotgun", origin: "United States", manufacturer: "Mossberg & Sons", price: 729, weight: 7.0, caliber: "12 Gauge", action: "Pump Action", barrel: "18.5 inches", capacity: "6+1 Rounds" },
+    { name: "Benelli M4", category: "shotgun", origin: "Italy", manufacturer: "Benelli SpA", price: 2099, weight: 7.8, caliber: "12 Gauge", action: "Semi-Automatic (ARGO)", barrel: "18.5 inches", capacity: "5+1 Rounds" },
+    { name: "MP5", category: "pcc", origin: "Germany", manufacturer: "Heckler & Koch", price: 2899, weight: 5.5, caliber: "9x19mm Parabellum", action: "Roller-Delayed Blowback", barrel: "8.9 inches", capacity: "30 Rounds" },
+    { name: "CZ Scorpion", category: "pcc", origin: "Czech Republic", manufacturer: "Ceska Zbrojovka", price: 949, weight: 5.0, caliber: "9x19mm Parabellum", action: "Blowback Semi-Auto", barrel: "7.72 inches", capacity: "20 / 30 Rounds" }
+];
+
+let activeSuggestionTemplate = null;
+
+// DOM Elements for creation
+const createModal = document.getElementById("create-modal");
+const contributeBtn = document.getElementById("contribute-btn");
+const createArticleForm = document.getElementById("create-article-form");
+
+const formName = document.getElementById("form-name");
+const formCategory = document.getElementById("form-category");
+const formOrigin = document.getElementById("form-origin");
+const formManufacturer = document.getElementById("form-manufacturer");
+const formPrice = document.getElementById("form-price");
+const formWeight = document.getElementById("form-weight");
+const formCaliber = document.getElementById("form-caliber");
+const formAction = document.getElementById("form-action");
+const formBarrel = document.getElementById("form-barrel");
+const formCapacity = document.getElementById("form-capacity");
+const formDescription = document.getElementById("form-description");
+
+const suggestPriceBox = document.getElementById("suggest-price-box");
+const suggestWeightBox = document.getElementById("suggest-weight-box");
+const suggestCaliberBox = document.getElementById("suggest-caliber-box");
+
+// Setup Contribution Event Listeners
+if (contributeBtn) {
+    contributeBtn.addEventListener("click", () => {
+        if (createModal) {
+            createArticleForm.reset();
+            activeSuggestionTemplate = null;
+            hideAllSuggestions();
+            createModal.classList.add("active");
+            // Set stats count
+            statsCount.textContent = FIREARMS_DATABASE.length;
+        }
+    });
+}
+
+function closeCreateModal() {
+    if (createModal) {
+        createModal.classList.remove("active");
+        createArticleForm.reset();
+        activeSuggestionTemplate = null;
+        hideAllSuggestions();
+    }
+}
+
+// Add close function to window
+window.closeCreateModal = closeCreateModal;
+
+// Autocomplete match lookup on Name typing
+if (formName) {
+    formName.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (query.length < 2) {
+            activeSuggestionTemplate = null;
+            hideAllSuggestions();
+            return;
+        }
+
+        // Try to find closest match in our dictionary
+        const match = FIREARM_AUTOCOMPLETE_DICTIONARY.find(item => 
+            item.name.toLowerCase().includes(query) || 
+            query.includes(item.name.toLowerCase())
+        );
+
+        if (match) {
+            activeSuggestionTemplate = match;
+            
+            // Auto-populate some metadata fields helper if they are empty
+            if (!formCategory.value || formCategory.value === "handgun") formCategory.value = match.category;
+            if (!formOrigin.value) formOrigin.value = match.origin;
+            if (!formManufacturer.value) formManufacturer.value = match.manufacturer;
+            if (!formAction.value) formAction.value = match.action;
+            if (!formBarrel.value) formBarrel.value = match.barrel;
+            if (!formCapacity.value) formCapacity.value = match.capacity;
+
+            // Trigger suggestions updates
+            updateSuggestionBoxes();
+        } else {
+            activeSuggestionTemplate = null;
+            hideAllSuggestions();
+        }
+    });
+}
+
+// Input focus/input event listeners to show suggestion box dynamically
+if (formPrice) {
+    formPrice.addEventListener("focus", () => showSuggestion("price"));
+    formPrice.addEventListener("input", () => showSuggestion("price"));
+    formPrice.addEventListener("blur", () => setTimeout(() => hideSuggestion("price"), 200));
+}
+if (formWeight) {
+    formWeight.addEventListener("focus", () => showSuggestion("weight"));
+    formWeight.addEventListener("input", () => showSuggestion("weight"));
+    formWeight.addEventListener("blur", () => setTimeout(() => hideSuggestion("weight"), 200));
+}
+if (formCaliber) {
+    formCaliber.addEventListener("focus", () => showSuggestion("caliber"));
+    formCaliber.addEventListener("input", () => showSuggestion("caliber"));
+    formCaliber.addEventListener("blur", () => setTimeout(() => hideSuggestion("caliber"), 200));
+}
+
+// Suggestion helpers
+function updateSuggestionBoxes() {
+    if (!activeSuggestionTemplate) return;
+
+    suggestPriceBox.innerHTML = `
+        <div class="suggest-item" onclick="applySuggestion('price', ${activeSuggestionTemplate.price})">
+            <i data-lucide="sparkles" class="suggest-item-icon"></i>
+            <span>💡 Suggest: $${activeSuggestionTemplate.price} (average for ${activeSuggestionTemplate.name})</span>
+        </div>
+    `;
+    suggestWeightBox.innerHTML = `
+        <div class="suggest-item" onclick="applySuggestion('weight', ${activeSuggestionTemplate.weight})">
+            <i data-lucide="sparkles" class="suggest-item-icon"></i>
+            <span>💡 Suggest: ${activeSuggestionTemplate.weight} lbs (recorded for ${activeSuggestionTemplate.name})</span>
+        </div>
+    `;
+    suggestCaliberBox.innerHTML = `
+        <div class="suggest-item" onclick="applySuggestion('caliber', '${activeSuggestionTemplate.caliber}')">
+            <i data-lucide="sparkles" class="suggest-item-icon"></i>
+            <span>💡 Suggest: ${activeSuggestionTemplate.caliber} (standard for ${activeSuggestionTemplate.name})</span>
+        </div>
+    `;
+    
+    // Refresh icons
+    lucide.createIcons();
+}
+
+function showSuggestion(type) {
+    if (!activeSuggestionTemplate) return;
+    
+    if (type === "price") {
+        suggestPriceBox.classList.add("active");
+    } else if (type === "weight") {
+        suggestWeightBox.classList.add("active");
+    } else if (type === "caliber") {
+        suggestCaliberBox.classList.add("active");
+    }
+}
+
+function hideSuggestion(type) {
+    if (type === "price") {
+        suggestPriceBox.classList.remove("active");
+    } else if (type === "weight") {
+        suggestWeightBox.classList.remove("active");
+    } else if (type === "caliber") {
+        suggestCaliberBox.classList.remove("active");
+    }
+}
+
+function hideAllSuggestions() {
+    hideSuggestion("price");
+    hideSuggestion("weight");
+    hideSuggestion("caliber");
+}
+
+function applySuggestion(type, value) {
+    if (type === "price") {
+        formPrice.value = value;
+    } else if (type === "weight") {
+        formWeight.value = value;
+    } else if (type === "caliber") {
+        formCaliber.value = value;
+    }
+    hideSuggestion(type);
+}
+
+// Bind to window for HTML event handlers
+window.applySuggestion = applySuggestion;
+
+// Form Submission handling
+function handleCreateArticle(event) {
+    event.preventDefault();
+
+    const name = formName.value.trim();
+    const category = formCategory.value;
+    const origin = formOrigin.value.trim() || "Unknown";
+    const manufacturer = formManufacturer.value.trim() || "Unknown";
+    const price = parseFloat(formPrice.value);
+    const weight = parseFloat(formWeight.value);
+    const caliber = formCaliber.value.trim();
+    const action = formAction.value.trim() || "Semi-Automatic";
+    const barrel = formBarrel.value.trim() || "Standard";
+    const capacity = formCapacity.value.trim() || "Standard";
+    const description = formDescription.value.trim();
+
+    // Create unique ID
+    const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    // Check for duplicates
+    if (FIREARMS_DATABASE.some(gun => gun.id === id)) {
+        alert("An article with this name already exists.");
+        return;
+    }
+
+    // Structure new firearm item
+    const newFirearm = {
+        id: id,
+        name: name.toUpperCase(),
+        category: category,
+        origin: origin,
+        manufacturer: manufacturer,
+        basePrice: price,
+        baseWeight: weight,
+        owner: currentUser ? currentUser.username : "anonymous",
+        caliber: caliber,
+        action: action,
+        barrelLength: barrel,
+        capacity: capacity,
+        description: description,
+        resources: [
+            { label: "Community Contributed Record", url: "#" }
+        ],
+        accessories: {
+            optics: [
+                { name: "Trijicon RMR Type 2", price: 499, weight: 0.07, selected: false }
+            ],
+            illumination: [
+                { name: "Streamlight TLR-7A", price: 140, weight: 0.15, selected: false }
+            ]
+        }
+    };
+
+    // Insert into database and save
+    FIREARMS_DATABASE.push(newFirearm);
+    saveFirearmsDatabase();
+
+    // Refresh controls stats and main rendering
+    if (statsCount) {
+        statsCount.textContent = FIREARMS_DATABASE.length;
+    }
+    renderCatalog();
+
+    // Close modal
+    closeCreateModal();
+}
+
+window.handleCreateArticle = handleCreateArticle;
+
+// 3-Step Delete Warning State Machine
+let deleteWarningStep = 0;
+
+function resetDeleteButton() {
+    deleteWarningStep = 0;
+    const deleteBtn = document.getElementById("delete-article-btn");
+    if (deleteBtn) {
+        deleteBtn.className = "delete-article-btn";
+        const btnText = deleteBtn.querySelector("span");
+        if (btnText) btnText.textContent = "DELETE ARTICLE";
+    }
+}
+
+function deleteCurrentArticle() {
+    if (!activeFirearm) return;
+    
+    const deleteBtn = document.getElementById("delete-article-btn");
+    const btnText = deleteBtn.querySelector("span");
+    
+    if (deleteWarningStep === 0) {
+        // Step 1: Yellow warning
+        deleteWarningStep = 1;
+        deleteBtn.className = "delete-article-btn warning-step-1";
+        if (btnText) btnText.textContent = "WARNING 1/3: CONFIRM DELETION?";
+    } else if (deleteWarningStep === 1) {
+        // Step 2: Orange warning
+        deleteWarningStep = 2;
+        deleteBtn.className = "delete-article-btn warning-step-2";
+        if (btnText) btnText.textContent = "CRITICAL 2/3: THIS ACTION IS PERMANENT!";
+    } else if (deleteWarningStep === 2) {
+        // Step 3: Delete
+        const index = FIREARMS_DATABASE.findIndex(g => g.id === activeFirearm.id);
+        if (index !== -1) {
+            FIREARMS_DATABASE.splice(index, 1);
+            saveFirearmsDatabase();
+            statsCount.textContent = FIREARMS_DATABASE.length;
+            renderCatalog();
+            closeModal();
+        }
+        resetDeleteButton();
+    }
+}
+window.deleteCurrentArticle = deleteCurrentArticle;
+window.resetDeleteButton = resetDeleteButton;
+
+// Authentication State
+let currentUser = JSON.parse(sessionStorage.getItem("armory_db_user")) || null;
+let registeredOperators = JSON.parse(localStorage.getItem("armory_db_operators")) || [
+    { username: "goon1", password: "password" }
+];
+let activeAuthTab = "login";
+
+// Auth Elements
+const loginModal = document.getElementById("login-modal");
+const authBtn = document.getElementById("auth-btn");
+const authForm = document.getElementById("auth-form");
+const authUsernameInput = document.getElementById("auth-username");
+const authPasswordInput = document.getElementById("auth-password");
+const authErrorMsg = document.getElementById("auth-error-msg");
+const authModalTitle = document.getElementById("auth-modal-title");
+const authSubmitBtn = document.getElementById("auth-submit-btn");
+const authTabLogin = document.getElementById("auth-tab-login");
+const authTabRegister = document.getElementById("auth-tab-register");
+const contributionsTabBtn = document.getElementById("contributions-tab-btn");
+
+// Init Auth UI on DOM Content Loaded
+document.addEventListener("DOMContentLoaded", () => {
+    updateAuthUI();
+});
+
+// Setup auth listeners
+if (authBtn) {
+    authBtn.addEventListener("click", () => {
+        if (currentUser) {
+            // Logout
+            currentUser = null;
+            sessionStorage.removeItem("armory_db_user");
+            updateAuthUI();
+            
+            // If they were on contributions filter, go back to all
+            if (currentFilters.category === "contributions") {
+                currentFilters.category = "all";
+                const allBtn = Array.from(filterButtons).find(b => b.getAttribute("data-category") === "all");
+                if (allBtn) {
+                    filterButtons.forEach(b => b.classList.remove("active"));
+                    allBtn.classList.add("active");
+                }
+                renderCatalog();
+            }
+        } else {
+            // Open Sign In
+            openLoginModal();
+        }
+    });
+}
+
+function openLoginModal() {
+    if (loginModal) {
+        if (authForm) authForm.reset();
+        if (authErrorMsg) {
+            authErrorMsg.style.display = "none";
+            authErrorMsg.textContent = "";
+        }
+        switchAuthTab("login");
+        loginModal.classList.add("active");
+    }
+}
+
+function closeLoginModal() {
+    if (loginModal) {
+        loginModal.classList.remove("active");
+    }
+}
+
+window.closeLoginModal = closeLoginModal;
+
+function switchAuthTab(tab) {
+    activeAuthTab = tab;
+    if (tab === "login") {
+        if (authTabLogin) authTabLogin.classList.add("active");
+        if (authTabRegister) authTabRegister.classList.remove("active");
+        if (authModalTitle) authModalTitle.textContent = "Sign In to ArmoryDB";
+        if (authSubmitBtn) authSubmitBtn.textContent = "SIGN IN";
+    } else {
+        if (authTabLogin) authTabLogin.classList.remove("active");
+        if (authTabRegister) authTabRegister.classList.add("active");
+        if (authModalTitle) authModalTitle.textContent = "Register Goon Profile";
+        if (authSubmitBtn) authSubmitBtn.textContent = "REGISTER PROFILE";
+    }
+    if (authErrorMsg) {
+        authErrorMsg.style.display = "none";
+        authErrorMsg.textContent = "";
+    }
+}
+
+window.switchAuthTab = switchAuthTab;
+
+function handleAuthSubmit(event) {
+    event.preventDefault();
+    const username = authUsernameInput.value.trim().toLowerCase();
+    const password = authPasswordInput.value;
+
+    if (!username || !password) return;
+
+    if (activeAuthTab === "login") {
+        // Authenticate
+        const user = registeredOperators.find(op => op.username === username && op.password === password);
+        if (user) {
+            currentUser = { username: username };
+            sessionStorage.setItem("armory_db_user", JSON.stringify(currentUser));
+            updateAuthUI();
+            closeLoginModal();
+        } else {
+            showAuthError("Invalid Goon Code or password decryption.");
+        }
+    } else {
+        // Register
+        if (registeredOperators.some(op => op.username === username)) {
+            showAuthError("Goon code already registered in global database.");
+            return;
+        }
+        const newOp = { username: username, password: password };
+        registeredOperators.push(newOp);
+        localStorage.setItem("armory_db_operators", JSON.stringify(registeredOperators));
+        
+        currentUser = { username: username };
+        sessionStorage.setItem("armory_db_user", JSON.stringify(currentUser));
+        updateAuthUI();
+        closeLoginModal();
+    }
+}
+
+window.handleAuthSubmit = handleAuthSubmit;
+
+function showAuthError(msg) {
+    if (authErrorMsg) {
+        authErrorMsg.textContent = msg;
+        authErrorMsg.style.display = "block";
+    }
+}
+
+function updateAuthUI() {
+    const authBtnText = document.getElementById("auth-btn-text");
+    if (currentUser) {
+        if (authBtnText) authBtnText.textContent = `LOGOUT (${currentUser.username.toUpperCase()})`;
+        if (contributionsTabBtn) contributionsTabBtn.style.display = "block";
+    } else {
+        if (authBtnText) authBtnText.textContent = "SIGN IN";
+        if (contributionsTabBtn) contributionsTabBtn.style.display = "none";
+    }
+}
