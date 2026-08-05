@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArmoryDB - The Ultimate Firearms & Ballistics Encyclopedia</title>
+    <meta name="description" content="Explore popular firearms, complete specifications, prices, configurations, accessories, and external resources in this tactical-themed ballistics encyclopedia.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- CSS Stylings -->
+    <link rel="stylesheet" href="index.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <!-- Top HUD/Header -->
+    <header class="hud-header">
+        <div class="hud-logo">
+            <span class="hud-status-dot"></span>
+            <h1>ARMORY<span class="accent-text">DB</span></h1>
+            <span class="hud-version">v1.0.4 // SECURE_CON</span>
+        </div>
+        <div class="hud-stats">
+            <div class="stat-box">
+                <span class="stat-label">TOTAL PLATFORMS</span>
+                <span class="stat-val" id="stats-count">10</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">SYSTEM STATE</span>
+                <span class="stat-val text-green">ONLINE</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="hud-container">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h2>TACTICAL CATALOG & BALLISTICS INDEX</h2>
+                <p>An interactive, spec-focused database tracking historical developments, mechanical configurations, real-world pricing, modular accessories, and ballistics data.</p>
+            </div>
+        </section>
+
+        <!-- Controls Toolbar -->
+        <section class="controls-toolbar">
+            <div class="search-wrapper">
+                <i data-lucide="search" class="search-icon"></i>
+                <input type="text" id="search-input" placeholder="SEARCH BY MODEL, CALIBER, OR ORIGIN...">
+            </div>
+            <div class="filters-wrapper">
+                <button class="filter-btn active" data-category="all">ALL PLATFORMS</button>
+                <button class="filter-btn" data-category="handgun">HANDGUNS</button>
+                <button class="filter-btn" data-category="rifle">RIFLES</button>
+                <button class="filter-btn" data-category="shotgun">SHOTGUNS</button>
+                <button class="filter-btn" data-category="pcc">SMG/PCC</button>
+            </div>
+            <div class="sort-wrapper">
+                <label for="sort-select">SORT BY:</label>
+                <select id="sort-select" class="hud-select">
+                    <option value="name-asc">NAME (A-Z)</option>
+                    <option value="price-asc">PRICE: LOW TO HIGH</option>
+                    <option value="price-desc">PRICE: HIGH TO LOW</option>
+                    <option value="weight-asc">WEIGHT: LIGHTEST</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Catalog Grid -->
+        <section class="catalog-grid" id="catalog-grid">
+            <!-- Dynamically populated via JS -->
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>INITIALIZING DATABASE INTERFACE...</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Details Drawer/Modal -->
+    <div class="hud-modal" id="details-modal">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">
+                <i data-lucide="x"></i>
+            </button>
+            
+            <div class="modal-header">
+                <span class="modal-category" id="modal-category-badge">RIFLE</span>
+                <h3 id="modal-title">DANIEL DEFENSE DDM4V7</h3>
+                <p class="modal-subtitle" id="modal-subtitle">Modern semi-automatic tactical rifle platform.</p>
+            </div>
+
+            <div class="modal-body-grid">
+                <!-- Col 1: Tech Specs -->
+                <div class="specs-panel">
+                    <h4><i data-lucide="info"></i> SPECIFICATIONS</h4>
+                    <ul class="specs-list">
+                        <li>
+                            <span class="spec-name">CALIBER</span>
+                            <span class="spec-value" id="spec-caliber">5.56x45mm NATO</span>
+                        </li>
+                        <li>
+                            <span class="spec-name">ACTION</span>
+                            <span class="spec-value" id="spec-action">Direct Impingement</span>
+                        </li>
+                        <li>
+                            <span class="spec-name">BARREL LENGTH</span>
+                            <span class="spec-value" id="spec-barrel">16 inches</span>
+                        </li>
+                        <li>
+                            <span class="spec-name">CAPACITY</span>
+                            <span class="spec-value" id="spec-capacity">30 Rounds</span>
+                        </li>
+                        <li>
+                            <span class="spec-name">WEIGHT (EMPTY)</span>
+                            <span class="spec-value" id="spec-weight">6.2 lbs</span>
+                        </li>
+                        <li>
+                            <span class="spec-name">ORIGIN</span>
+                            <span class="spec-value" id="spec-origin">United States</span>
+                        </li>
+                    </ul>
+
+                    <div class="reference-links">
+                        <h4><i data-lucide="external-link"></i> INTEL RESOURCES</h4>
+                        <div class="links-flex" id="modal-links">
+                            <!-- Links injected via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Col 2: Configuration / Accessories -->
+                <div class="accessory-builder-panel">
+                    <h4><i data-lucide="sliders"></i> INTERACTIVE ACC-EQUIPMENT</h4>
+                    <p class="builder-description">Equip accessories to recalculate tactical weight and estimated total configuration cost.</p>
+                    
+                    <div class="accessory-groups" id="accessory-groups-container">
+                        <!-- Accessory options dynamically injected -->
+                    </div>
+
+                    <div class="builder-totals">
+                        <div class="total-row">
+                            <span>BASE WEIGHT</span>
+                            <span id="base-weight-val">6.20 lbs</span>
+                        </div>
+                        <div class="total-row">
+                            <span>ATTACHMENT WEIGHT</span>
+                            <span class="accent-text" id="acc-weight-val">+0.00 lbs</span>
+                        </div>
+                        <div class="total-row total-highlight">
+                            <span>COMBINED OPERATIONAL WEIGHT</span>
+                            <span id="total-weight-val">6.20 lbs</span>
+                        </div>
+                        <hr class="totals-divider">
+                        <div class="total-row">
+                            <span>BASE PLATFORM MSRP</span>
+                            <span id="base-price-val">$1,900</span>
+                        </div>
+                        <div class="total-row">
+                            <span>ATTACHMENT COST</span>
+                            <span class="accent-text" id="acc-price-val">+$0</span>
+                        </div>
+                        <div class="total-row total-highlight price-highlight">
+                            <span>ESTIMATED TOTAL INVESTMENT</span>
+                            <span id="total-price-val">$1,900</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Footer -->
+    <footer class="hud-footer">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <h3>ARMORY<span class="accent-text">DB</span></h3>
+                <p>The premium, comprehensive open source index of firearms. For training, development, and research purposes only. Always observe local firearms regulations.</p>
+            </div>
+            <div class="footer-links">
+                <h4>VERIFIED RESOURCES</h4>
+                <ul>
+                    <li><a href="https://pewscience.com/" target="_blank" rel="noopener noreferrer">PEW Science (Silencer Sound Standards)</a></li>
+                    <li><a href="https://www.imfdb.org/" target="_blank" rel="noopener noreferrer">IMFDB (Internet Movie Firearms Database)</a></li>
+                    <li><a href="https://www.shootingillustrated.com/" target="_blank" rel="noopener noreferrer">Shooting Illustrated</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 ArmoryDB project. Hosted via GitHub Pages. Secured connection protocol active.</p>
+        </div>
+    </footer>
+
+    <!-- App Engine Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
