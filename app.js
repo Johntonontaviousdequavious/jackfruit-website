@@ -917,9 +917,11 @@ window.resetDeleteButton = resetDeleteButton;
 
 // Authentication State
 let currentUser = JSON.parse(sessionStorage.getItem("armory_db_user")) || null;
-let registeredOperators = JSON.parse(localStorage.getItem("armory_db_operators")) || [
-    { username: "human1", password: "password" }
-];
+let registeredOperators = JSON.parse(localStorage.getItem("armory_db_operators")) || [];
+if (!registeredOperators.some(op => op.username === "human1")) {
+    registeredOperators.push({ username: "human1", password: "password" });
+    localStorage.setItem("armory_db_operators", JSON.stringify(registeredOperators));
+}
 let activeAuthTab = "login";
 
 // Auth Elements
