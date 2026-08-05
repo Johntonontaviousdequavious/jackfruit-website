@@ -983,6 +983,18 @@ function openLoginModal() {
 function closeLoginModal() {
     if (loginModal) {
         loginModal.classList.remove("active");
+        
+        // Reset password visibility toggler
+        if (authPasswordInput) {
+            authPasswordInput.type = "password";
+        }
+        const eyeIcon = document.getElementById("password-eye-icon");
+        if (eyeIcon) {
+            eyeIcon.setAttribute("data-lucide", "eye");
+        }
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 }
 
@@ -1063,3 +1075,22 @@ function updateAuthUI() {
         if (contributionsTabBtn) contributionsTabBtn.style.display = "none";
     }
 }
+
+function togglePasswordVisibility() {
+    if (!authPasswordInput) return;
+    const eyeIcon = document.getElementById("password-eye-icon");
+    if (!eyeIcon) return;
+
+    if (authPasswordInput.type === "password") {
+        authPasswordInput.type = "text";
+        eyeIcon.setAttribute("data-lucide", "eye-off");
+    } else {
+        authPasswordInput.type = "password";
+        eyeIcon.setAttribute("data-lucide", "eye");
+    }
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+
+window.togglePasswordVisibility = togglePasswordVisibility;
