@@ -15,26 +15,25 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <!-- Top HUD/Header -->
-    <header class="hud-header">
-        <div class="hud-logo">
-            <span class="hud-status-dot"></span>
-            <h1>ARMORY<span class="accent-text">DB</span></h1>
-            <span class="hud-version">v1.0.4 // SECURE_CON</span>
+    <!-- Top Header -->
+    <header class="wiki-header">
+        <div class="wiki-logo">
+            <i data-lucide="book-open" class="logo-icon"></i>
+            <h1>Armory<span class="logo-accent">DB</span></h1>
+            <span class="wiki-tagline">The Firearms & Ballistics Encyclopedia</span>
         </div>
-        <div class="hud-stats">
-            <div class="stat-box">
-                <span class="stat-label">TOTAL PLATFORMS</span>
-                <span class="stat-val" id="stats-count">10</span>
+        <div class="header-controls">
+            <div class="wiki-stats">
+                <span class="stat-text"><strong id="stats-count">10</strong> cataloged platforms</span>
             </div>
-            <div class="stat-box">
-                <span class="stat-label">SYSTEM STATE</span>
-                <span class="stat-val text-green">ONLINE</span>
-            </div>
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                <i data-lucide="sun" class="sun-icon"></i>
+                <i data-lucide="moon" class="moon-icon"></i>
+            </button>
         </div>
     </header>
 
-    <main class="hud-container">
+    <main class="wiki-container">
         <!-- Hero Section -->
         <section class="hero-section">
             <div class="hero-overlay"></div>
@@ -78,96 +77,107 @@
         </section>
     </main>
 
-    <!-- Details Drawer/Modal -->
-    <div class="hud-modal" id="details-modal">
+    <!-- Details Wiki Modal -->
+    <div class="wiki-modal" id="details-modal">
         <div class="modal-backdrop" onclick="closeModal()"></div>
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">
+            <button class="modal-close" onclick="closeModal()" aria-label="Close article">
                 <i data-lucide="x"></i>
             </button>
             
             <div class="modal-header">
-                <span class="modal-category" id="modal-category-badge">RIFLE</span>
-                <h3 id="modal-title">DANIEL DEFENSE DDM4V7</h3>
-                <p class="modal-subtitle" id="modal-subtitle">Modern semi-automatic tactical rifle platform.</p>
+                <div class="modal-header-meta">
+                    <span class="modal-category" id="modal-category-badge">RIFLE</span>
+                    <span class="modal-divider">/</span>
+                    <span class="modal-source">From ArmoryDB, the free encyclopedia</span>
+                </div>
+                <h2 id="modal-title">Daniel Defense DDM4V7</h2>
             </div>
 
             <div class="modal-body-grid">
-                <!-- Col 1: Tech Specs -->
-                <div class="specs-panel">
-                    <h4><i data-lucide="info"></i> SPECIFICATIONS</h4>
-                    <ul class="specs-list">
-                        <li>
-                            <span class="spec-name">CALIBER</span>
-                            <span class="spec-value" id="spec-caliber">5.56x45mm NATO</span>
-                        </li>
-                        <li>
-                            <span class="spec-name">ACTION</span>
-                            <span class="spec-value" id="spec-action">Direct Impingement</span>
-                        </li>
-                        <li>
-                            <span class="spec-name">BARREL LENGTH</span>
-                            <span class="spec-value" id="spec-barrel">16 inches</span>
-                        </li>
-                        <li>
-                            <span class="spec-name">CAPACITY</span>
-                            <span class="spec-value" id="spec-capacity">30 Rounds</span>
-                        </li>
-                        <li>
-                            <span class="spec-name">WEIGHT (EMPTY)</span>
-                            <span class="spec-value" id="spec-weight">6.2 lbs</span>
-                        </li>
-                        <li>
-                            <span class="spec-name">ORIGIN</span>
-                            <span class="spec-value" id="spec-origin">United States</span>
-                        </li>
-                    </ul>
+                <!-- Main Content (Left) -->
+                <div class="main-article-content">
+                    <div class="article-lead">
+                        <p id="modal-subtitle">Modern semi-automatic tactical rifle platform.</p>
+                    </div>
 
-                    <div class="reference-links">
-                        <h4><i data-lucide="external-link"></i> INTEL RESOURCES</h4>
-                        <div class="links-flex" id="modal-links">
+                    <div class="article-section">
+                        <h3 class="section-title"><span class="section-number">1</span> Interactive configuration</h3>
+                        <p class="section-description">Equip specific attachments to recalculate the dynamic operating weight and estimated investment cost.</p>
+                        
+                        <div class="accessory-groups" id="accessory-groups-container">
+                            <!-- Accessory options dynamically injected -->
+                        </div>
+
+                        <div class="builder-totals-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Base Value</th>
+                                        <th>Modifications</th>
+                                        <th>Calculated Total</th>
+                                    </tr>
+                                </thead>
+                               <tbody>
+                                    <tr>
+                                        <td><strong>Weight</strong></td>
+                                        <td id="base-weight-val">6.20 lbs</td>
+                                        <td id="acc-weight-val">+0.00 lbs</td>
+                                        <td><strong id="total-weight-val">6.20 lbs</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Estimated Cost (MSRP)</strong></td>
+                                        <td id="base-price-val">$1,900</td>
+                                        <td id="acc-price-val">+$0</td>
+                                        <td><strong id="total-price-val" class="price-highlight">$1,900</strong></td>
+                                    </tr>
+                               </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="article-section">
+                        <h3 class="section-title"><span class="section-number">2</span> References</h3>
+                        <div class="reference-links-list" id="modal-links">
                             <!-- Links injected via JavaScript -->
                         </div>
                     </div>
                 </div>
 
-                <!-- Col 2: Configuration / Accessories -->
-                <div class="accessory-builder-panel">
-                    <h4><i data-lucide="sliders"></i> INTERACTIVE ACC-EQUIPMENT</h4>
-                    <p class="builder-description">Equip accessories to recalculate tactical weight and estimated total configuration cost.</p>
-                    
-                    <div class="accessory-groups" id="accessory-groups-container">
-                        <!-- Accessory options dynamically injected -->
-                    </div>
-
-                    <div class="builder-totals">
-                        <div class="total-row">
-                            <span>BASE WEIGHT</span>
-                            <span id="base-weight-val">6.20 lbs</span>
-                        </div>
-                        <div class="total-row">
-                            <span>ATTACHMENT WEIGHT</span>
-                            <span class="accent-text" id="acc-weight-val">+0.00 lbs</span>
-                        </div>
-                        <div class="total-row total-highlight">
-                            <span>COMBINED OPERATIONAL WEIGHT</span>
-                            <span id="total-weight-val">6.20 lbs</span>
-                        </div>
-                        <hr class="totals-divider">
-                        <div class="total-row">
-                            <span>BASE PLATFORM MSRP</span>
-                            <span id="base-price-val">$1,900</span>
-                        </div>
-                        <div class="total-row">
-                            <span>ATTACHMENT COST</span>
-                            <span class="accent-text" id="acc-price-val">+$0</span>
-                        </div>
-                        <div class="total-row total-highlight price-highlight">
-                            <span>ESTIMATED TOTAL INVESTMENT</span>
-                            <span id="total-price-val">$1,900</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Wiki Infobox Sidebar (Right) -->
+                <aside class="wiki-infobox">
+                    <div class="infobox-title" id="infobox-title">Daniel Defense DDM4V7</div>
+                    <div class="infobox-subheader">Technical Specifications</div>
+                    <table class="infobox-table">
+                        <tbody>
+                            <tr>
+                                <th scope="row">Caliber</th>
+                                <td id="spec-caliber">5.56x45mm NATO</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Action</th>
+                                <td id="spec-action">Direct Impingement</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Barrel length</th>
+                                <td id="spec-barrel">16 inches</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Capacity</th>
+                                <td id="spec-capacity">30 Rounds</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Weight (empty)</th>
+                                <td id="spec-weight">6.2 lbs</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Origin</th>
+                                <td id="spec-origin">United States</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </aside>
             </div>
         </div>
     </div>

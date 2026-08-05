@@ -326,6 +326,14 @@ const totalPriceVal = document.getElementById("total-price-val");
 
 // Initialize application
 document.addEventListener("DOMContentLoaded", () => {
+    // Initialize theme
+    const savedTheme = localStorage.getItem("theme") || "light";
+    if (savedTheme === "dark") {
+        document.body.classList.add("dark-theme");
+    } else {
+        document.body.classList.remove("dark-theme");
+    }
+
     statsCount.textContent = FIREARMS_DATABASE.length;
     renderCatalog();
     setupEventListeners();
@@ -333,6 +341,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Setup DOM Event Listeners
 function setupEventListeners() {
+    // Theme Switcher Toggle
+    const themeToggleBtn = document.getElementById("theme-toggle");
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener("click", () => {
+            document.body.classList.toggle("dark-theme");
+            const isDark = document.body.classList.contains("dark-theme");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+        });
+    }
+
     // Search input
     searchInput.addEventListener("input", (e) => {
         currentFilters.search = e.target.value.toLowerCase().trim();
@@ -449,6 +467,12 @@ function openDetails(firearmId) {
     modalTitle.textContent = activeFirearm.name;
     modalSubtitle.textContent = activeFirearm.description;
     modalCategoryBadge.textContent = activeFirearm.category.toUpperCase();
+    
+    // Update Wikipedia style Infobox Title
+    const infoboxTitle = document.getElementById("infobox-title");
+    if (infoboxTitle) {
+        infoboxTitle.textContent = activeFirearm.name;
+    }
     
     specCaliber.textContent = activeFirearm.caliber;
     specAction.textContent = activeFirearm.action;
