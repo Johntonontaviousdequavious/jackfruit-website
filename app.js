@@ -918,7 +918,7 @@ window.resetDeleteButton = resetDeleteButton;
 // Authentication State
 let currentUser = JSON.parse(sessionStorage.getItem("armory_db_user")) || null;
 let registeredOperators = JSON.parse(localStorage.getItem("armory_db_operators")) || [
-    { username: "goon1", password: "password" }
+    { username: "human1", password: "password" }
 ];
 let activeAuthTab = "login";
 
@@ -996,7 +996,7 @@ function switchAuthTab(tab) {
     } else {
         if (authTabLogin) authTabLogin.classList.remove("active");
         if (authTabRegister) authTabRegister.classList.add("active");
-        if (authModalTitle) authModalTitle.textContent = "Register Goon Profile";
+        if (authModalTitle) authModalTitle.textContent = "Register Human Profile";
         if (authSubmitBtn) authSubmitBtn.textContent = "REGISTER PROFILE";
     }
     if (authErrorMsg) {
@@ -1023,12 +1023,12 @@ function handleAuthSubmit(event) {
             updateAuthUI();
             closeLoginModal();
         } else {
-            showAuthError("Invalid Goon Code or password decryption.");
+            showAuthError("Invalid Human Code or password decryption.");
         }
     } else {
         // Register
         if (registeredOperators.some(op => op.username === username)) {
-            showAuthError("Goon code already registered in global database.");
+            showAuthError("Human code already registered in global database.");
             return;
         }
         const newOp = { username: username, password: password };
