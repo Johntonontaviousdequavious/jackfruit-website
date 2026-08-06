@@ -1452,3 +1452,33 @@ body.dark-theme .modal-backdrop {
     width: fit-content;
     animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Dynamic Source List styling */
+.added-sources-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.35rem 0.5rem;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--text-primary);
+}
+
+.remove-source-btn {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem;
+    transition: color var(--transition-speed) ease;
+}
+
+.remove-source-btn:hover {
+    color: #ff3333;
+}

@@ -315,6 +315,8 @@ const modalSubtitle = document.getElementById("modal-subtitle");
 const modalCategoryBadge = document.getElementById("modal-category-badge");
 const specCaliber = document.getElementById("spec-caliber");
 const specAction = document.getElementById("spec-action");
+const specIgnition = document.getElementById("spec-ignition");
+const specOperation = document.getElementById("spec-operation");
 const specBarrel = document.getElementById("spec-barrel");
 const specCapacity = document.getElementById("spec-capacity");
 const specWeight = document.getElementById("spec-weight");
@@ -485,6 +487,23 @@ function openDetails(firearmId) {
     
     specCaliber.textContent = activeFirearm.caliber;
     specAction.textContent = activeFirearm.action;
+    
+    // Set Ignition & Operation fields (with fallbacks for default platforms)
+    if (specIgnition) {
+        specIgnition.textContent = activeFirearm.ignition || (activeFirearm.caliber.includes(".22 LR") ? "Rimfire" : "Centerfire");
+    }
+    if (specOperation) {
+        let defaultOp = "Short Recoil";
+        if (activeFirearm.category === "rifle") {
+            defaultOp = activeFirearm.id === "ddm4v7" ? "Direct Impingement" : (activeFirearm.id === "rem700" ? "Bolt Action" : "Gas Piston");
+        } else if (activeFirearm.category === "shotgun") {
+            defaultOp = activeFirearm.id === "mossberg590" ? "Pump Action" : "Auto-Regulating Gas-Operated (ARGO)";
+        } else if (activeFirearm.category === "pcc") {
+            defaultOp = activeFirearm.id === "sigmpx" ? "Short-Stroke Gas Piston" : "Blowback";
+        }
+        specOperation.textContent = activeFirearm.operation || defaultOp;
+    }
+
     specBarrel.textContent = activeFirearm.barrelLength;
     specCapacity.textContent = activeFirearm.capacity;
     specWeight.textContent = `${activeFirearm.baseWeight} lbs`;
@@ -645,7 +664,15 @@ const formPrice = document.getElementById("form-price");
 const formWeight = document.getElementById("form-weight");
 const formCaliberSelect = document.getElementById("form-caliber-select");
 const formCaliberCustom = document.getElementById("form-caliber-custom");
-const formAction = document.getElementById("form-action");
+const formActionSelect = document.getElementById("form-action-select");
+const formActionCustom = document.getElementById("form-action-custom");
+const formIgnitionSelect = document.getElementById("form-ignition-select");
+const formOperationSelect = document.getElementById("form-operation-select");
+const formOperationCustom = document.getElementById("form-operation-custom");
+const formWikiLink = document.getElementById("form-wiki-link");
+const addedSourcesList = document.getElementById("added-sources-list");
+const sourceLabel = document.getElementById("source-label");
+const sourceUrl = document.getElementById("source-url");
 const formBarrel = document.getElementById("form-barrel");
 const formCapacity = document.getElementById("form-capacity");
 const formDescription = document.getElementById("form-description");
@@ -676,6 +703,10 @@ function closeCreateModal() {
         hideAllSuggestions();
         if (priceCommentBubble) priceCommentBubble.style.display = "none";
         if (formCaliberCustom) formCaliberCustom.style.display = "none";
+        if (formActionCustom) formActionCustom.style.display = "none";
+        if (formOperationCustom) formOperationCustom.style.display = "none";
+        activeSourcesList = [];
+        if (typeof renderAddedSourcesList === "function") renderAddedSourcesList();
     }
 }
 
@@ -705,9 +736,90 @@ if (formName) {
             if (!formCategory.value || formCategory.value === "handgun") formCategory.value = match.category;
             if (!formOrigin.value) formOrigin.value = match.origin;
             if (!formManufacturer.value) formManufacturer.value = match.manufacturer;
-            if (!formAction.value) formAction.value = match.action;
             if (!formBarrel.value) formBarrel.value = match.barrel;
             if (!formCapacity.value) formCapacity.value = match.capacity;
+
+            // Auto-select action type in dropdown if possible
+            if (formActionSelect) {
+                const actionOptions = Array.from(formActionSelect.options).map(o => o.value);
+                // Try to find closest match
+                let matchedAction = "other";
+                if (match.action.toLowerCase().includes("semi-automatic") || match.action.toLowerCase().includes("semi-auto")) {
+                    matchedAction = "Semi-Automatic";
+                } else if (match.action.toLowerCase().includes("pump")) {
+                    matchedAction = "Pump Action";
+                } else if (match.action.toLowerCase().includes("bolt")) {
+                    matchedAction = "Bolt Action";
+                } else if (match.action.toLowerCase().includes("single-action")) {
+                    matchedAction = "Single Action";
+                } else if (match.action.toLowerCase().includes("double")) {
+                    matchedAction = "Double Action";
+                } else if (match.action.toLowerCase().includes("binary")) {
+                    matchedAction = "Binary Trigger";
+                } else if (match.action.toLowerCase().includes("full auto")) {
+                    matchedAction = "Full Auto";
+                } else if (match.action.toLowerCase().includes("burst")) {
+                    matchedAction = "Burst Firing";
+                }
+
+                if (actionOptions.includes(matchedAction)) {
+                    formActionSelect.value = matchedAction;
+                    if (formActionCustom) {
+                        formActionCustom.style.display = "none";
+                        formActionCustom.value = "";
+                    }
+                } else {
+                    formActionSelect.value = "other";
+                    if (formActionCustom) {
+                        formActionCustom.value = match.action;
+                        formActionCustom.style.display = "block";
+                    }
+                }
+            }
+
+            // Auto-select ignition in dropdown if possible
+            if (formIgnitionSelect) {
+                if (match.caliber.includes(".22 LR")) {
+                    formIgnitionSelect.value = "Rimfire";
+                } else {
+                    formIgnitionSelect.value = "Centerfire";
+                }
+            }
+
+            // Auto-select operation system in dropdown if possible
+            if (formOperationSelect) {
+                const operationOptions = Array.from(formOperationSelect.options).map(o => o.value);
+                let guessedOp = "other";
+                if (match.action.toLowerCase().includes("direct impingement")) {
+                    guessedOp = "Direct Impingement";
+                } else if (match.action.toLowerCase().includes("gas piston")) {
+                    guessedOp = "Short-Stroke Gas Piston";
+                } else if (match.action.toLowerCase().includes("blowback")) {
+                    guessedOp = "Blowback";
+                } else if (match.action.toLowerCase().includes("roller-delayed")) {
+                    guessedOp = "Roller-Delayed Blowback";
+                } else if (match.action.toLowerCase().includes("pump")) {
+                    guessedOp = "Pump Action";
+                } else if (match.action.toLowerCase().includes("bolt")) {
+                    guessedOp = "Bolt Action";
+                } else if (match.category === "handgun") {
+                    guessedOp = "Short Recoil";
+                }
+
+                if (operationOptions.includes(guessedOp)) {
+                    formOperationSelect.value = guessedOp;
+                    if (formOperationCustom) {
+                        formOperationCustom.style.display = "none";
+                        formOperationCustom.value = "";
+                    }
+                } else {
+                    formOperationSelect.value = "other";
+                    if (formOperationCustom) {
+                        formOperationCustom.value = guessedOp === "other" ? match.action : guessedOp;
+                        formOperationCustom.style.display = "block";
+                    }
+                }
+            }
 
             // Auto-select cartridge in dropdown if possible
             if (formCaliberSelect) {
@@ -845,10 +957,30 @@ function handleCreateArticle(event) {
     if (caliber === "other") {
         caliber = formCaliberCustom.value.trim() || "Other";
     }
-    const action = formAction.value.trim() || "Semi-Automatic";
+    let action = formActionSelect.value;
+    if (action === "other") {
+        action = formActionCustom.value.trim() || "Other Action";
+    }
+    const ignition = formIgnitionSelect.value || "Centerfire";
+    let operation = formOperationSelect.value;
+    if (operation === "other") {
+        operation = formOperationCustom.value.trim() || "Other System";
+    }
     const barrel = formBarrel.value.trim() || "Standard";
     const capacity = formCapacity.value.trim() || "Standard";
     const description = formDescription.value.trim();
+
+    // Build resources from wikipedia and custom sources
+    const resources = [];
+    if (formWikiLink && formWikiLink.value.trim()) {
+        resources.push({ label: "Wikipedia Article", url: formWikiLink.value.trim() });
+    }
+    activeSourcesList.forEach(src => {
+        resources.push(src);
+    });
+    if (resources.length === 0) {
+        resources.push({ label: "Community Contributed Record", url: "#" });
+    }
 
     // Create unique ID
     const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -871,12 +1003,12 @@ function handleCreateArticle(event) {
         owner: currentUser ? currentUser.username : "anonymous",
         caliber: caliber,
         action: action,
+        ignition: ignition,
+        operation: operation,
         barrelLength: barrel,
         capacity: capacity,
         description: description,
-        resources: [
-            { label: "Community Contributed Record", url: "#" }
-        ],
+        resources: resources,
         accessories: {
             optics: [
                 { name: "Trijicon RMR Type 2", price: 499, weight: 0.07, selected: false }
@@ -1127,3 +1259,83 @@ function togglePasswordVisibility() {
 }
 
 window.togglePasswordVisibility = togglePasswordVisibility;
+
+// Dynamic sources list builder state
+let activeSourcesList = [];
+
+function handleActionSelectChange() {
+    if (formActionSelect) {
+        if (formActionSelect.value === "other") {
+            formActionCustom.style.display = "block";
+            formActionCustom.required = true;
+        } else {
+            formActionCustom.style.display = "none";
+            formActionCustom.required = false;
+            formActionCustom.value = "";
+        }
+    }
+}
+window.handleActionSelectChange = handleActionSelectChange;
+
+function handleOperationSelectChange() {
+    if (formOperationSelect) {
+        if (formOperationSelect.value === "other") {
+            formOperationCustom.style.display = "block";
+            formOperationCustom.required = true;
+        } else {
+            formOperationCustom.style.display = "none";
+            formOperationCustom.required = false;
+            formOperationCustom.value = "";
+        }
+    }
+}
+window.handleOperationSelectChange = handleOperationSelectChange;
+
+function addCustomSource() {
+    if (!sourceLabel || !sourceUrl) return;
+    const labelVal = sourceLabel.value.trim();
+    const urlVal = sourceUrl.value.trim();
+
+    if (!labelVal || !urlVal) {
+        alert("Please enter both a source label and a valid URL link.");
+        return;
+    }
+
+    activeSourcesList.push({ label: labelVal, url: urlVal });
+    
+    // Clear inputs
+    sourceLabel.value = "";
+    sourceUrl.value = "";
+
+    renderAddedSourcesList();
+}
+window.addCustomSource = addCustomSource;
+
+function renderAddedSourcesList() {
+    if (!addedSourcesList) return;
+
+    if (activeSourcesList.length === 0) {
+        addedSourcesList.innerHTML = `<li style="color: var(--text-muted); border: none; background: transparent;">No additional sources added yet.</li>`;
+        return;
+    }
+
+    addedSourcesList.innerHTML = activeSourcesList.map((src, index) => `
+        <li>
+            <a href="${src.url}" target="_blank" rel="noopener noreferrer" style="color: var(--text-link); text-decoration: underline;">${src.label}</a>
+            <button type="button" class="remove-source-btn" onclick="removeCustomSource(${index})" aria-label="Remove source">
+                <i data-lucide="minus-circle" style="width: 14px; height: 14px;"></i>
+            </button>
+        </li>
+    `).join("");
+
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
+}
+window.renderAddedSourcesList = renderAddedSourcesList;
+
+function removeCustomSource(index) {
+    activeSourcesList.splice(index, 1);
+    renderAddedSourcesList();
+}
+window.removeCustomSource = removeCustomSource;

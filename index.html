@@ -175,6 +175,14 @@
                                 <td id="spec-action">Direct Impingement</td>
                             </tr>
                             <tr>
+                                <th scope="row">Ignition</th>
+                                <td id="spec-ignition">Centerfire</td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Operation</th>
+                                <td id="spec-operation">Direct Impingement</td>
+                            </tr>
+                            <tr>
                                 <th scope="row">Barrel length</th>
                                 <td id="spec-barrel">16 inches</td>
                             </tr>
@@ -255,7 +263,7 @@
                                 <div class="suggest-box" id="suggest-price-box"></div>
                                 <div id="price-comment-bubble" class="price-comment-bubble" style="display: none;">
                                     <i data-lucide="message-square" style="width: 12px; height: 12px; margin-right: 4px; display: inline-block;"></i>
-                                    <span>That's a lot of dollars!</span>
+                                    <span>wowza</span>
                                 </div>
                             </div>
                             <div class="form-group input-suggest-wrapper">
@@ -287,9 +295,50 @@
 
                         <div class="form-row-three">
                             <div class="form-group">
-                                <label for="form-action">Action Type</label>
-                                <input type="text" id="form-action" placeholder="e.g. Striker Fired" autocomplete="off">
+                                <label for="form-action-select">Firing Mode / Action *</label>
+                                <select id="form-action-select" required class="hud-select" onchange="handleActionSelectChange()">
+                                    <option value="" disabled selected>Select firing mode...</option>
+                                    <option value="Single Action">Single Action</option>
+                                    <option value="Double Action">Double Action</option>
+                                    <option value="Semi-Automatic">Semi-Automatic</option>
+                                    <option value="Binary Trigger">Binary Trigger</option>
+                                    <option value="Full Auto">Full Auto</option>
+                                    <option value="Burst Firing">Burst Firing</option>
+                                    <option value="Pump Action">Pump Action</option>
+                                    <option value="Bolt Action">Bolt Action</option>
+                                    <option value="other">Other...</option>
+                                </select>
+                                <input type="text" id="form-action-custom" placeholder="Enter custom action..." style="display: none; margin-top: 0.5rem;" autocomplete="off">
                             </div>
+                            <div class="form-group">
+                                <label for="form-ignition-select">Ignition System *</label>
+                                <select id="form-ignition-select" required class="hud-select">
+                                    <option value="" disabled selected>Select ignition...</option>
+                                    <option value="Centerfire">Centerfire</option>
+                                    <option value="Rimfire">Rimfire</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="form-operation-select">Operating System *</label>
+                                <select id="form-operation-select" required class="hud-select" onchange="handleOperationSelectChange()">
+                                    <option value="" disabled selected>Select operating system...</option>
+                                    <option value="Direct Impingement">Direct Impingement</option>
+                                    <option value="Short-Stroke Gas Piston">Short-Stroke Gas Piston</option>
+                                    <option value="Long-Stroke Gas Piston">Long-Stroke Gas Piston</option>
+                                    <option value="Blowback">Blowback</option>
+                                    <option value="Roller-Delayed Blowback">Roller-Delayed Blowback</option>
+                                    <option value="Short Recoil">Short Recoil</option>
+                                    <option value="Long Recoil">Long Recoil</option>
+                                    <option value="Pump Action">Pump Action</option>
+                                    <option value="Bolt Action">Bolt Action</option>
+                                    <option value="other">Other...</option>
+                                </select>
+                                <input type="text" id="form-operation-custom" placeholder="Enter custom operation..." style="display: none; margin-top: 0.5rem;" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <div class="form-row-two">
                             <div class="form-group">
                                 <label for="form-barrel">Barrel Length</label>
                                 <input type="text" id="form-barrel" placeholder="e.g. 4.0 inches" autocomplete="off">
@@ -297,6 +346,28 @@
                             <div class="form-group">
                                 <label for="form-capacity">Capacity</label>
                                 <input type="text" id="form-capacity" placeholder="e.g. 15 Rounds" autocomplete="off">
+                            </div>
+                        </div>
+
+                        <!-- References & Credits System -->
+                        <div class="form-section-header">References & Credits System</div>
+                        <p class="form-section-note">Add Wikipedia links and verified sources to credit your research.</p>
+
+                        <div class="form-row-two">
+                            <div class="form-group">
+                                <label for="form-wiki-link">Wikipedia Reference URL</label>
+                                <input type="url" id="form-wiki-link" placeholder="https://en.wikipedia.org/wiki/..." autocomplete="off">
+                            </div>
+                            <div class="form-group">
+                                <label>Additional Sources / Credits</label>
+                                <div class="sources-input-row" style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="source-label" placeholder="Source Label (e.g. Pew Science)" style="flex: 1;">
+                                    <input type="url" id="source-url" placeholder="Source URL (https://...)" style="flex: 1.5;">
+                                    <button type="button" class="form-btn-secondary" onclick="addCustomSource()" style="padding: 0.4rem 0.8rem; margin: 0; white-space: nowrap;">ADD</button>
+                                </div>
+                                <ul id="added-sources-list" class="added-sources-list" style="margin-top: 0.5rem; max-height: 120px; overflow-y: auto; list-style: none;">
+                                    <!-- Dynamic list of sources -->
+                                </ul>
                             </div>
                         </div>
 
