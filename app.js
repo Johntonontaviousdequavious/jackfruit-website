@@ -315,6 +315,18 @@ const DEFAULT_FIREARMS_DATABASE = [
 
 let FIREARMS_DATABASE = JSON.parse(localStorage.getItem("armory_db_firearms")) || DEFAULT_FIREARMS_DATABASE;
 
+// Sync any missing default platforms from the static code database
+let databaseUpdated = false;
+DEFAULT_FIREARMS_DATABASE.forEach(defaultGun => {
+    if (!FIREARMS_DATABASE.some(gun => gun.id === defaultGun.id)) {
+        FIREARMS_DATABASE.push(defaultGun);
+        databaseUpdated = true;
+    }
+});
+if (databaseUpdated) {
+    localStorage.setItem("armory_db_firearms", JSON.stringify(FIREARMS_DATABASE));
+}
+
 function saveFirearmsDatabase() {
     localStorage.setItem("armory_db_firearms", JSON.stringify(FIREARMS_DATABASE));
 }
