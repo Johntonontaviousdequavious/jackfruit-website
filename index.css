@@ -1435,3 +1435,20 @@ body.dark-theme .modal-backdrop {
 .toggle-password-btn:hover {
     color: var(--text-primary);
 }
+
+/* Price Comment Bubble */
+.price-comment-bubble {
+    background-color: var(--accent-glow);
+    border: 1px solid var(--border-accent);
+    color: var(--accent);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    width: fit-content;
+    animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -251,18 +251,37 @@
                         <div class="form-row-three">
                             <div class="form-group input-suggest-wrapper">
                                 <label for="form-price">Average Price (USD) *</label>
-                                <input type="number" id="form-price" required placeholder="MSRP" min="0" autocomplete="off">
+                                <input type="number" id="form-price" required placeholder="MSRP" min="0" autocomplete="off" oninput="handlePriceInput()">
                                 <div class="suggest-box" id="suggest-price-box"></div>
+                                <div id="price-comment-bubble" class="price-comment-bubble" style="display: none;">
+                                    <i data-lucide="message-square" style="width: 12px; height: 12px; margin-right: 4px; display: inline-block;"></i>
+                                    <span>That's a lot of dollars!</span>
+                                </div>
                             </div>
                             <div class="form-group input-suggest-wrapper">
                                 <label for="form-weight">Weight (lbs) *</label>
                                 <input type="number" id="form-weight" required placeholder="Empty weight" step="0.01" min="0" autocomplete="off">
                                 <div class="suggest-box" id="suggest-weight-box"></div>
                             </div>
-                            <div class="form-group input-suggest-wrapper">
-                                <label for="form-caliber">Ammo Used *</label>
-                                <input type="text" id="form-caliber" required placeholder="e.g. 9x19mm NATO" autocomplete="off">
-                                <div class="suggest-box" id="suggest-caliber-box"></div>
+                            <div class="form-group">
+                                <label for="form-caliber-select">Ammo Used *</label>
+                                <select id="form-caliber-select" required class="hud-select" onchange="handleCaliberSelectChange()">
+                                    <option value="" disabled selected>Select cartridge...</option>
+                                    <option value="9x19mm Parabellum">9x19mm Parabellum</option>
+                                    <option value="5.56x45mm NATO">5.56x45mm NATO</option>
+                                    <option value="7.62x39mm">7.62x39mm</option>
+                                    <option value="7.62x51mm NATO">7.62x51mm NATO</option>
+                                    <option value=".308 Winchester">.308 Winchester</option>
+                                    <option value=".45 ACP">.45 ACP</option>
+                                    <option value="12 Gauge">12 Gauge</option>
+                                    <option value=".50 BMG">.50 BMG</option>
+                                    <option value=".22 LR">.22 LR</option>
+                                    <option value=".30-06 Springfield">.30-06 Springfield</option>
+                                    <option value=".50 AE">.50 AE</option>
+                                    <option value=".357 Magnum">.357 Magnum</option>
+                                    <option value="other">Other...</option>
+                                </select>
+                                <input type="text" id="form-caliber-custom" placeholder="Enter custom cartridge..." style="display: none; margin-top: 0.5rem;" autocomplete="off">
                             </div>
                         </div>
 

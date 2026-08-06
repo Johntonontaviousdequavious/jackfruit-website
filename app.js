@@ -643,7 +643,8 @@ const formOrigin = document.getElementById("form-origin");
 const formManufacturer = document.getElementById("form-manufacturer");
 const formPrice = document.getElementById("form-price");
 const formWeight = document.getElementById("form-weight");
-const formCaliber = document.getElementById("form-caliber");
+const formCaliberSelect = document.getElementById("form-caliber-select");
+const formCaliberCustom = document.getElementById("form-caliber-custom");
 const formAction = document.getElementById("form-action");
 const formBarrel = document.getElementById("form-barrel");
 const formCapacity = document.getElementById("form-capacity");
@@ -651,7 +652,7 @@ const formDescription = document.getElementById("form-description");
 
 const suggestPriceBox = document.getElementById("suggest-price-box");
 const suggestWeightBox = document.getElementById("suggest-weight-box");
-const suggestCaliberBox = document.getElementById("suggest-caliber-box");
+const priceCommentBubble = document.getElementById("price-comment-bubble");
 
 // Setup Contribution Event Listeners
 if (contributeBtn) {
@@ -673,6 +674,8 @@ function closeCreateModal() {
         createArticleForm.reset();
         activeSuggestionTemplate = null;
         hideAllSuggestions();
+        if (priceCommentBubble) priceCommentBubble.style.display = "none";
+        if (formCaliberCustom) formCaliberCustom.style.display = "none";
     }
 }
 
@@ -706,6 +709,24 @@ if (formName) {
             if (!formBarrel.value) formBarrel.value = match.barrel;
             if (!formCapacity.value) formCapacity.value = match.capacity;
 
+            // Auto-select cartridge in dropdown if possible
+            if (formCaliberSelect) {
+                const options = Array.from(formCaliberSelect.options).map(o => o.value);
+                if (options.includes(match.caliber)) {
+                    formCaliberSelect.value = match.caliber;
+                    if (formCaliberCustom) {
+                        formCaliberCustom.style.display = "none";
+                        formCaliberCustom.value = "";
+                    }
+                } else {
+                    formCaliberSelect.value = "other";
+                    if (formCaliberCustom) {
+                        formCaliberCustom.value = match.caliber;
+                        formCaliberCustom.style.display = "block";
+                    }
+                }
+            }
+
             // Trigger suggestions updates
             updateSuggestionBoxes();
         } else {
@@ -726,11 +747,6 @@ if (formWeight) {
     formWeight.addEventListener("input", () => showSuggestion("weight"));
     formWeight.addEventListener("blur", () => setTimeout(() => hideSuggestion("weight"), 200));
 }
-if (formCaliber) {
-    formCaliber.addEventListener("focus", () => showSuggestion("caliber"));
-    formCaliber.addEventListener("input", () => showSuggestion("caliber"));
-    formCaliber.addEventListener("blur", () => setTimeout(() => hideSuggestion("caliber"), 200));
-}
 
 // Suggestion helpers
 function updateSuggestionBoxes() {
@@ -748,12 +764,6 @@ function updateSuggestionBoxes() {
             <span>💡 Suggest: ${activeSuggestionTemplate.weight} lbs (recorded for ${activeSuggestionTemplate.name})</span>
         </div>
     `;
-    suggestCaliberBox.innerHTML = `
-        <div class="suggest-item" onclick="applySuggestion('caliber', '${activeSuggestionTemplate.caliber}')">
-            <i data-lucide="sparkles" class="suggest-item-icon"></i>
-            <span>💡 Suggest: ${activeSuggestionTemplate.caliber} (standard for ${activeSuggestionTemplate.name})</span>
-        </div>
-    `;
     
     // Refresh icons
     lucide.createIcons();
@@ -766,8 +776,6 @@ function showSuggestion(type) {
         suggestPriceBox.classList.add("active");
     } else if (type === "weight") {
         suggestWeightBox.classList.add("active");
-    } else if (type === "caliber") {
-        suggestCaliberBox.classList.add("active");
     }
 }
 
@@ -776,30 +784,52 @@ function hideSuggestion(type) {
         suggestPriceBox.classList.remove("active");
     } else if (type === "weight") {
         suggestWeightBox.classList.remove("active");
-    } else if (type === "caliber") {
-        suggestCaliberBox.classList.remove("active");
     }
 }
 
 function hideAllSuggestions() {
     hideSuggestion("price");
     hideSuggestion("weight");
-    hideSuggestion("caliber");
 }
 
 function applySuggestion(type, value) {
     if (type === "price") {
         formPrice.value = value;
+        handlePriceInput(); // check if over 3000
     } else if (type === "weight") {
         formWeight.value = value;
-    } else if (type === "caliber") {
-        formCaliber.value = value;
     }
     hideSuggestion(type);
 }
 
 // Bind to window for HTML event handlers
 window.applySuggestion = applySuggestion;
+
+function handleCaliberSelectChange() {
+    if (formCaliberSelect) {
+        if (formCaliberSelect.value === "other") {
+            formCaliberCustom.style.display = "block";
+            formCaliberCustom.required = true;
+        } else {
+            formCaliberCustom.style.display = "none";
+            formCaliberCustom.required = false;
+            formCaliberCustom.value = "";
+        }
+    }
+}
+window.handleCaliberSelectChange = handleCaliberSelectChange;
+
+function handlePriceInput() {
+    if (formPrice && priceCommentBubble) {
+        const val = parseFloat(formPrice.value);
+        if (!isNaN(val) && val > 3000) {
+            priceCommentBubble.style.display = "inline-flex";
+        } else {
+            priceCommentBubble.style.display = "none";
+        }
+    }
+}
+window.handlePriceInput = handlePriceInput;
 
 // Form Submission handling
 function handleCreateArticle(event) {
@@ -811,7 +841,10 @@ function handleCreateArticle(event) {
     const manufacturer = formManufacturer.value.trim() || "Unknown";
     const price = parseFloat(formPrice.value);
     const weight = parseFloat(formWeight.value);
-    const caliber = formCaliber.value.trim();
+    let caliber = formCaliberSelect.value;
+    if (caliber === "other") {
+        caliber = formCaliberCustom.value.trim() || "Other";
+    }
     const action = formAction.value.trim() || "Semi-Automatic";
     const barrel = formBarrel.value.trim() || "Standard";
     const capacity = formCapacity.value.trim() || "Standard";
