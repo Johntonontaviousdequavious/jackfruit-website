@@ -76,13 +76,10 @@
             </div>
         </section>
 
-        <!-- Handgun Subcategory Toolbar (Shown only when Handguns tab is active) -->
-        <section class="subcategory-toolbar" id="handgun-subcategory-toolbar" style="display: none; margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-light); padding-bottom: 0.75rem;">
-            <div class="subcategory-filters" style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
-                <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-right: 0.5rem;">Filter by:</span>
-                <button class="subfilter-btn active" data-subcategory="all">ALL HANDGUNS</button>
-                <button class="subfilter-btn" data-subcategory="pistol">PISTOLS</button>
-                <button class="subfilter-btn" data-subcategory="revolver">REVOLVERS</button>
+        <!-- Dynamic Subcategory Toolbar (Shown only when category filters are active) -->
+        <section class="subcategory-toolbar" id="subcategory-filter-toolbar" style="display: none; margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-light); padding-bottom: 0.75rem;">
+            <div class="subcategory-filters" id="subcategory-filters-container" style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <!-- Injected dynamically via JavaScript -->
             </div>
         </section>
 
@@ -253,10 +250,9 @@
 
                         <div class="form-row-two" id="form-subcategory-row" style="display: none; margin-bottom: 1rem;">
                             <div class="form-group">
-                                <label for="form-subcategory">Handgun Type *</label>
+                                <label for="form-subcategory" id="form-subcategory-label">Subcategory / Type *</label>
                                 <select id="form-subcategory" class="hud-select" onchange="handleFormSubcategoryChange()">
-                                    <option value="pistol">Pistol</option>
-                                    <option value="revolver">Revolver</option>
+                                    <!-- Injected dynamically via JS based on selected category -->
                                 </select>
                             </div>
                             <div class="form-group"></div>

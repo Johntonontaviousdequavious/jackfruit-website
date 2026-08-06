@@ -318,11 +318,69 @@ let FIREARMS_DATABASE = JSON.parse(localStorage.getItem("armory_db_firearms")) |
 // Sync any missing default platforms from the static code database
 let databaseUpdated = false;
 DEFAULT_FIREARMS_DATABASE.forEach(defaultGun => {
+    // Programmatic subcategory assignment
+    if (defaultGun.id === "glock19" || defaultGun.id === "sigp320" || defaultGun.id === "colt1911") {
+        defaultGun.subcategory = "pistol";
+    } else if (defaultGun.id === "smithwesson686") {
+        defaultGun.subcategory = "revolver";
+    } else if (defaultGun.id === "ddm4v7" || defaultGun.id === "ak47") {
+        defaultGun.subcategory = "semi-automatic";
+    } else if (defaultGun.id === "rem700") {
+        defaultGun.subcategory = "bolt action";
+    } else if (defaultGun.id === "mossberg590") {
+        defaultGun.subcategory = "pump action";
+    } else if (defaultGun.id === "benellim4") {
+        defaultGun.subcategory = "semi-automatic";
+    } else if (defaultGun.id === "czscorpion" || defaultGun.id === "sigmpx") {
+        defaultGun.subcategory = "semi-automatic";
+    }
+
     if (!FIREARMS_DATABASE.some(gun => gun.id === defaultGun.id)) {
         FIREARMS_DATABASE.push(defaultGun);
         databaseUpdated = true;
     }
 });
+
+// Map subcategories on loaded database items if they are missing
+FIREARMS_DATABASE.forEach(gun => {
+    if (!gun.subcategory) {
+        if (gun.id === "glock19" || gun.id === "sigp320" || gun.id === "colt1911") {
+            gun.subcategory = "pistol";
+            databaseUpdated = true;
+        } else if (gun.id === "smithwesson686") {
+            gun.subcategory = "revolver";
+            databaseUpdated = true;
+        } else if (gun.id === "ddm4v7" || gun.id === "ak47") {
+            gun.subcategory = "semi-automatic";
+            databaseUpdated = true;
+        } else if (gun.id === "rem700") {
+            gun.subcategory = "bolt action";
+            databaseUpdated = true;
+        } else if (gun.id === "mossberg590") {
+            gun.subcategory = "pump action";
+            databaseUpdated = true;
+        } else if (gun.id === "benellim4") {
+            gun.subcategory = "semi-automatic";
+            databaseUpdated = true;
+        } else if (gun.id === "czscorpion" || gun.id === "sigmpx") {
+            gun.subcategory = "semi-automatic";
+            databaseUpdated = true;
+        } else if (gun.category === "handgun") {
+            gun.subcategory = "pistol";
+            databaseUpdated = true;
+        } else if (gun.category === "rifle") {
+            gun.subcategory = "semi-automatic";
+            databaseUpdated = true;
+        } else if (gun.category === "shotgun") {
+            gun.subcategory = "pump action";
+            databaseUpdated = true;
+        } else if (gun.category === "pcc") {
+            gun.subcategory = "semi-automatic";
+            databaseUpdated = true;
+        }
+    }
+});
+
 if (databaseUpdated) {
     localStorage.setItem("armory_db_firearms", JSON.stringify(FIREARMS_DATABASE));
 }
@@ -411,37 +469,10 @@ function setupEventListeners() {
             btn.classList.add("active");
             currentFilters.category = btn.getAttribute("data-category");
 
-            // Show handgun subcategory toolbar if handgun is active
-            const handgunSubToolbar = document.getElementById("handgun-subcategory-toolbar");
-            if (handgunSubToolbar) {
-                if (currentFilters.category === "handgun") {
-                    handgunSubToolbar.style.display = "block";
-                } else {
-                    handgunSubToolbar.style.display = "none";
-                }
+            if (typeof updateSubcategoryFilterToolbar === "function") {
+                updateSubcategoryFilterToolbar();
             }
-            // Reset handgun subcategory filter
-            activeSubcategory = "all";
-            const subBtns = document.querySelectorAll(".subfilter-btn");
-            subBtns.forEach(b => {
-                if (b.getAttribute("data-subcategory") === "all") {
-                    b.classList.add("active");
-                } else {
-                    b.classList.remove("active");
-                }
-            });
 
-            renderCatalog();
-        });
-    });
-
-    // Handgun subcategory filters
-    const subBtns = document.querySelectorAll(".subfilter-btn");
-    subBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            subBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            activeSubcategory = btn.getAttribute("data-subcategory");
             renderCatalog();
         });
     });
@@ -468,11 +499,11 @@ function renderCatalog() {
                                     ? (gun.owner === (currentUser ? currentUser.username : "")) 
                                     : (gun.category === currentFilters.category));
         
-        // Subcategory filter (handgun pistols vs revolvers)
+        // Subcategory filter
         let matchesSubcategory = true;
-        if (currentFilters.category === "handgun" && activeSubcategory !== "all") {
-            const sub = gun.subcategory || "pistol"; // Default to pistol for compatibility
-            matchesSubcategory = (sub === activeSubcategory);
+        if (currentFilters.category !== "all" && currentFilters.category !== "contributions" && activeSubcategory !== "all") {
+            const sub = gun.subcategory || "";
+            matchesSubcategory = (sub.toLowerCase() === activeSubcategory.toLowerCase());
         }
         
         return matchesSearch && matchesCategory && matchesSubcategory;
@@ -1047,7 +1078,7 @@ function handleCreateArticle(event) {
 
     const name = formName.value.trim();
     const category = formCategory.value;
-    const subcategory = (category === "handgun") ? formSubcategory.value : "";
+    const subcategory = formSubcategory.value || "";
     const origin = formOrigin.value.trim() || "Unknown";
     const manufacturer = formManufacturer.value.trim() || "Unknown";
     const price = parseFloat(formPrice.value);
@@ -1441,15 +1472,41 @@ function removeCustomSource(index) {
 window.removeCustomSource = removeCustomSource;
 
 function handleFormCategoryChange() {
-    if (!formCategory) return;
+    if (!formCategory || !formSubcategory || !formSubcategoryRow) return;
     const cat = formCategory.value;
+
+    let subOptions = [];
     if (cat === "handgun") {
-        if (formSubcategoryRow) formSubcategoryRow.style.display = "flex";
-        handleFormSubcategoryChange();
-    } else {
-        if (formSubcategoryRow) formSubcategoryRow.style.display = "none";
-        updateCaliberDropdownOptions(cat, "");
+        subOptions = [
+            { value: "pistol", label: "Pistol" },
+            { value: "revolver", label: "Revolver" }
+        ];
+    } else if (cat === "rifle") {
+        subOptions = [
+            { value: "bolt action", label: "Bolt Action" },
+            { value: "semi-automatic", label: "Semi-Automatic" },
+            { value: "lever action", label: "Lever Action" },
+            { value: "other", label: "Other" }
+        ];
+    } else if (cat === "shotgun") {
+        subOptions = [
+            { value: "pump action", label: "Pump Action" },
+            { value: "semi-automatic", label: "Semi-Automatic" },
+            { value: "break action", label: "Break Action" },
+            { value: "other", label: "Other" }
+        ];
+    } else if (cat === "pcc") {
+        subOptions = [
+            { value: "semi-automatic", label: "Semi-Automatic" },
+            { value: "full auto", label: "Full Auto" },
+            { value: "other", label: "Other" }
+        ];
     }
+
+    formSubcategory.innerHTML = subOptions.map(opt => `<option value="${opt.value}">${opt.label}</option>`).join("");
+    formSubcategoryRow.style.display = "flex";
+
+    handleFormSubcategoryChange();
 }
 window.handleFormCategoryChange = handleFormCategoryChange;
 
@@ -1518,3 +1575,72 @@ function updateCaliberDropdownOptions(category, subcategory) {
     }
 }
 window.updateCaliberDropdownOptions = updateCaliberDropdownOptions;
+
+function updateSubcategoryFilterToolbar() {
+    const toolbar = document.getElementById("subcategory-filter-toolbar");
+    const container = document.getElementById("subcategory-filters-container");
+    if (!toolbar || !container) return;
+
+    const cat = currentFilters.category;
+    activeSubcategory = "all"; // reset subcategory selection
+
+    if (cat === "all" || cat === "contributions") {
+        toolbar.style.display = "none";
+        container.innerHTML = "";
+        return;
+    }
+
+    let subcategories = [];
+    if (cat === "handgun") {
+        subcategories = [
+            { value: "all", label: "ALL HANDGUNS" },
+            { value: "pistol", label: "PISTOLS" },
+            { value: "revolver", label: "REVOLVERS" }
+        ];
+    } else if (cat === "rifle") {
+        subcategories = [
+            { value: "all", label: "ALL RIFLES" },
+            { value: "bolt action", label: "BOLT ACTION" },
+            { value: "semi-automatic", label: "SEMI-AUTOMATIC" },
+            { value: "lever action", label: "LEVER ACTION" },
+            { value: "other", label: "OTHER" }
+        ];
+    } else if (cat === "shotgun") {
+        subcategories = [
+            { value: "all", label: "ALL SHOTGUNS" },
+            { value: "pump action", label: "PUMP ACTION" },
+            { value: "semi-automatic", label: "SEMI-AUTOMATIC" },
+            { value: "break action", label: "BREAK ACTION" },
+            { value: "other", label: "OTHER" }
+        ];
+    } else if (cat === "pcc") {
+        subcategories = [
+            { value: "all", label: "ALL SMG/PCC" },
+            { value: "semi-automatic", label: "SEMI-AUTOMATIC" },
+            { value: "full auto", label: "FULL AUTO" },
+            { value: "other", label: "OTHER" }
+        ];
+    }
+
+    // Build buttons HTML
+    let html = `<span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-right: 0.5rem;">Filter by:</span>`;
+    subcategories.forEach(sub => {
+        const isActive = sub.value === "all";
+        html += `<button class="subfilter-btn ${isActive ? 'active' : ''}" data-subcategory="${sub.value}">${sub.label}</button>`;
+    });
+
+    container.innerHTML = html;
+    toolbar.style.display = "block";
+
+    // Bind event listeners to newly created subfilter buttons
+    const subfilterBtns = container.querySelectorAll(".subfilter-btn");
+    subfilterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            subfilterBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeSubcategory = btn.getAttribute("data-subcategory");
+            renderCatalog();
+        });
+    });
+}
+window.updateSubcategoryFilterToolbar = updateSubcategoryFilterToolbar;
