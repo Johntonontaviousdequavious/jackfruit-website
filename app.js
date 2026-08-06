@@ -1577,9 +1577,14 @@ function updateCaliberDropdownOptions(category, subcategory) {
 window.updateCaliberDropdownOptions = updateCaliberDropdownOptions;
 
 function updateSubcategoryFilterToolbar() {
+    console.log("updateSubcategoryFilterToolbar called. Category:", currentFilters.category);
     const toolbar = document.getElementById("subcategory-filter-toolbar");
     const container = document.getElementById("subcategory-filters-container");
-    if (!toolbar || !container) return;
+    console.log("Toolbar element:", toolbar, "Container element:", container);
+    if (!toolbar || !container) {
+        console.warn("Subcategory toolbar elements not found in DOM! (This means the browser is still serving a cached/old index.html)");
+        return;
+    }
 
     const cat = currentFilters.category;
     activeSubcategory = "all"; // reset subcategory selection
