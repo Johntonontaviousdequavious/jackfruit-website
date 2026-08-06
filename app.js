@@ -83,6 +83,32 @@ const DEFAULT_FIREARMS_DATABASE = [
         }
     },
     {
+        id: "smithwesson686",
+        name: "SMITH & WESSON MODEL 686",
+        category: "handgun",
+        subcategory: "revolver",
+        origin: "United States",
+        manufacturer: "Smith & Wesson",
+        basePrice: 949,
+        baseWeight: 2.56,
+        caliber: ".357 Magnum",
+        action: "Double Action / Single Action",
+        ignition: "Centerfire",
+        operation: "Revolver Cylinder",
+        barrelLength: "4.0 inches",
+        capacity: "6 Rounds",
+        description: "An iconic L-frame revolver chambered in .357 Magnum. Renowned for its robust stainless steel construction, smooth double-action trigger, and superb accuracy.",
+        resources: [
+            { label: "Smith & Wesson Model 686 Wikipedia", url: "https://en.wikipedia.org/wiki/Smith_%26_Wesson_Model_686" }
+        ],
+        accessories: {
+            grips: [
+                { name: "Hogue Rubber Monogrip", price: 28, weight: 0.12, selected: false },
+                { name: "Altamont Wood Target Grips", price: 75, weight: 0.18, selected: false }
+            ]
+        }
+    },
+    {
         id: "ddm4v7",
         name: "DANIEL DEFENSE DDM4V7",
         category: "rifle",
@@ -300,6 +326,7 @@ let currentFilters = {
     category: "all",
     sort: "name-asc"
 };
+let activeSubcategory = "all";
 
 // DOM Elements
 const catalogGrid = document.getElementById("catalog-grid");
@@ -371,6 +398,38 @@ function setupEventListeners() {
             filterButtons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentFilters.category = btn.getAttribute("data-category");
+
+            // Show handgun subcategory toolbar if handgun is active
+            const handgunSubToolbar = document.getElementById("handgun-subcategory-toolbar");
+            if (handgunSubToolbar) {
+                if (currentFilters.category === "handgun") {
+                    handgunSubToolbar.style.display = "block";
+                } else {
+                    handgunSubToolbar.style.display = "none";
+                }
+            }
+            // Reset handgun subcategory filter
+            activeSubcategory = "all";
+            const subBtns = document.querySelectorAll(".subfilter-btn");
+            subBtns.forEach(b => {
+                if (b.getAttribute("data-subcategory") === "all") {
+                    b.classList.add("active");
+                } else {
+                    b.classList.remove("active");
+                }
+            });
+
+            renderCatalog();
+        });
+    });
+
+    // Handgun subcategory filters
+    const subBtns = document.querySelectorAll(".subfilter-btn");
+    subBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            subBtns.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            activeSubcategory = btn.getAttribute("data-subcategory");
             renderCatalog();
         });
     });
@@ -397,7 +456,14 @@ function renderCatalog() {
                                     ? (gun.owner === (currentUser ? currentUser.username : "")) 
                                     : (gun.category === currentFilters.category));
         
-        return matchesSearch && matchesCategory;
+        // Subcategory filter (handgun pistols vs revolvers)
+        let matchesSubcategory = true;
+        if (currentFilters.category === "handgun" && activeSubcategory !== "all") {
+            const sub = gun.subcategory || "pistol"; // Default to pistol for compatibility
+            matchesSubcategory = (sub === activeSubcategory);
+        }
+        
+        return matchesSearch && matchesCategory && matchesSubcategory;
     });
 
     // Sorting
@@ -632,12 +698,13 @@ window.openDetails = openDetails;
 
 // Autocomplete dictionary for popular firearms
 const FIREARM_AUTOCOMPLETE_DICTIONARY = [
-    { name: "Glock 17", category: "handgun", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 499, weight: 1.65, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.49 inches", capacity: "17 Rounds" },
-    { name: "Glock 19", category: "handgun", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 539, weight: 1.88, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.02 inches", capacity: "15 Rounds" },
-    { name: "Colt 1911", category: "handgun", origin: "United States", manufacturer: "Colt's Manufacturing", price: 899, weight: 2.44, caliber: ".45 ACP", action: "Single-Action Semi-Automatic", barrel: "5.0 inches", capacity: "7+1 Rounds" },
-    { name: "Beretta 92FS", category: "handgun", origin: "Italy", manufacturer: "Beretta SpA", price: 675, weight: 2.15, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.9 inches", capacity: "15 Rounds" },
-    { name: "Sig Sauer P226", category: "handgun", origin: "Germany / Switzerland", manufacturer: "Sig Sauer", price: 999, weight: 2.12, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.4 inches", capacity: "15 Rounds" },
-    { name: "Desert Eagle", category: "handgun", origin: "Israel / USA", manufacturer: "Magnum Research", price: 1650, weight: 4.4, caliber: ".50 AE", action: "Gas-Operated Semi-Auto", barrel: "6.0 inches", capacity: "7 Rounds" },
+    { name: "Glock 17", category: "handgun", subcategory: "pistol", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 499, weight: 1.65, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.49 inches", capacity: "17 Rounds" },
+    { name: "Glock 19", category: "handgun", subcategory: "pistol", origin: "Austria", manufacturer: "Glock Ges.m.b.H.", price: 539, weight: 1.88, caliber: "9x19mm Parabellum", action: "Safe Action (Striker Fired)", barrel: "4.02 inches", capacity: "15 Rounds" },
+    { name: "Colt 1911", category: "handgun", subcategory: "pistol", origin: "United States", manufacturer: "Colt's Manufacturing", price: 899, weight: 2.44, caliber: ".45 ACP", action: "Single-Action Semi-Automatic", barrel: "5.0 inches", capacity: "7+1 Rounds" },
+    { name: "Beretta 92FS", category: "handgun", subcategory: "pistol", origin: "Italy", manufacturer: "Beretta SpA", price: 675, weight: 2.15, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.9 inches", capacity: "15 Rounds" },
+    { name: "Sig Sauer P226", category: "handgun", subcategory: "pistol", origin: "Germany / Switzerland", manufacturer: "Sig Sauer", price: 999, weight: 2.12, caliber: "9x19mm Parabellum", action: "Double/Single Action", barrel: "4.4 inches", capacity: "15 Rounds" },
+    { name: "Desert Eagle", category: "handgun", subcategory: "pistol", origin: "Israel / USA", manufacturer: "Magnum Research", price: 1650, weight: 4.4, caliber: ".50 AE", action: "Gas-Operated Semi-Auto", barrel: "6.0 inches", capacity: "7 Rounds" },
+    { name: "Smith & Wesson 686", category: "handgun", subcategory: "revolver", origin: "United States", manufacturer: "Smith & Wesson", price: 949, weight: 2.56, caliber: ".357 Magnum", action: "Double Action / Single Action", barrel: "4.0 inches", capacity: "6 Rounds" },
     { name: "AR-15", category: "rifle", origin: "United States", manufacturer: "Various Manufacturers", price: 950, weight: 6.5, caliber: "5.56x45mm NATO", action: "Direct Impingement", barrel: "16.0 inches", capacity: "30 Rounds" },
     { name: "M4A1", category: "rifle", origin: "United States", manufacturer: "Colt's Manufacturing", price: 1299, weight: 6.36, caliber: "5.56x45mm NATO", action: "Direct Impingement", barrel: "14.5 inches", capacity: "30 Rounds" },
     { name: "AK-47", category: "rifle", origin: "Soviet Union", manufacturer: "Izhmash / Zastava", price: 850, weight: 7.9, caliber: "7.62x39mm", action: "Gas-Operated", barrel: "16.3 inches", capacity: "30 Rounds" },
@@ -658,6 +725,8 @@ const createArticleForm = document.getElementById("create-article-form");
 
 const formName = document.getElementById("form-name");
 const formCategory = document.getElementById("form-category");
+const formSubcategoryRow = document.getElementById("form-subcategory-row");
+const formSubcategory = document.getElementById("form-subcategory");
 const formOrigin = document.getElementById("form-origin");
 const formManufacturer = document.getElementById("form-manufacturer");
 const formPrice = document.getElementById("form-price");
@@ -688,6 +757,9 @@ if (contributeBtn) {
             createArticleForm.reset();
             activeSuggestionTemplate = null;
             hideAllSuggestions();
+            if (typeof handleFormCategoryChange === "function") {
+                handleFormCategoryChange();
+            }
             createModal.classList.add("active");
             // Set stats count
             statsCount.textContent = FIREARMS_DATABASE.length;
@@ -705,6 +777,7 @@ function closeCreateModal() {
         if (formCaliberCustom) formCaliberCustom.style.display = "none";
         if (formActionCustom) formActionCustom.style.display = "none";
         if (formOperationCustom) formOperationCustom.style.display = "none";
+        if (formSubcategoryRow) formSubcategoryRow.style.display = "none";
         activeSourcesList = [];
         if (typeof renderAddedSourcesList === "function") renderAddedSourcesList();
     }
@@ -733,11 +806,24 @@ if (formName) {
             activeSuggestionTemplate = match;
             
             // Auto-populate some metadata fields helper if they are empty
-            if (!formCategory.value || formCategory.value === "handgun") formCategory.value = match.category;
+            if (!formCategory.value || formCategory.value === "handgun") {
+                formCategory.value = match.category;
+                if (match.category === "handgun") {
+                    if (formSubcategoryRow) formSubcategoryRow.style.display = "flex";
+                    if (formSubcategory) {
+                        formSubcategory.value = match.subcategory || "pistol";
+                    }
+                } else {
+                    if (formSubcategoryRow) formSubcategoryRow.style.display = "none";
+                }
+            }
             if (!formOrigin.value) formOrigin.value = match.origin;
             if (!formManufacturer.value) formManufacturer.value = match.manufacturer;
             if (!formBarrel.value) formBarrel.value = match.barrel;
             if (!formCapacity.value) formCapacity.value = match.capacity;
+
+            // Rebuild the caliber options list dynamically before auto-selecting
+            updateCaliberDropdownOptions(formCategory.value, (formCategory.value === "handgun" && formSubcategory) ? formSubcategory.value : "");
 
             // Auto-select action type in dropdown if possible
             if (formActionSelect) {
@@ -949,6 +1035,7 @@ function handleCreateArticle(event) {
 
     const name = formName.value.trim();
     const category = formCategory.value;
+    const subcategory = (category === "handgun") ? formSubcategory.value : "";
     const origin = formOrigin.value.trim() || "Unknown";
     const manufacturer = formManufacturer.value.trim() || "Unknown";
     const price = parseFloat(formPrice.value);
@@ -996,6 +1083,7 @@ function handleCreateArticle(event) {
         id: id,
         name: name.toUpperCase(),
         category: category,
+        subcategory: subcategory,
         origin: origin,
         manufacturer: manufacturer,
         basePrice: price,
@@ -1339,3 +1427,82 @@ function removeCustomSource(index) {
     renderAddedSourcesList();
 }
 window.removeCustomSource = removeCustomSource;
+
+function handleFormCategoryChange() {
+    if (!formCategory) return;
+    const cat = formCategory.value;
+    if (cat === "handgun") {
+        if (formSubcategoryRow) formSubcategoryRow.style.display = "flex";
+        handleFormSubcategoryChange();
+    } else {
+        if (formSubcategoryRow) formSubcategoryRow.style.display = "none";
+        updateCaliberDropdownOptions(cat, "");
+    }
+}
+window.handleFormCategoryChange = handleFormCategoryChange;
+
+function handleFormSubcategoryChange() {
+    if (!formCategory || !formSubcategory) return;
+    const cat = formCategory.value;
+    const sub = formSubcategory.value;
+    updateCaliberDropdownOptions(cat, sub);
+}
+window.handleFormSubcategoryChange = handleFormSubcategoryChange;
+
+function updateCaliberDropdownOptions(category, subcategory) {
+    if (!formCaliberSelect) return;
+
+    let options = [];
+    if (category === "handgun") {
+        if (subcategory === "revolver") {
+            options = [
+                { value: ".357 Magnum", label: ".357 Magnum" },
+                { value: ".38 Special", label: ".38 Special" },
+                { value: ".44 Magnum", label: ".44 Magnum" },
+                { value: ".500 S&W Magnum", label: ".500 S&W Magnum" }
+            ];
+        } else {
+            // default to pistol
+            options = [
+                { value: "9x19mm Parabellum", label: "9x19mm Parabellum" },
+                { value: ".45 ACP", label: ".45 ACP" },
+                { value: ".50 AE", label: ".50 AE" },
+                { value: ".380 ACP", label: ".380 ACP" }
+            ];
+        }
+    } else if (category === "rifle") {
+        options = [
+            { value: "5.56x45mm NATO", label: "5.56x45mm NATO" },
+            { value: "7.62x39mm", label: "7.62x39mm" },
+            { value: "7.62x51mm NATO", label: "7.62x51mm NATO" },
+            { value: ".308 Winchester", label: ".308 Winchester" },
+            { value: ".30-06 Springfield", label: ".30-06 Springfield" },
+            { value: ".22 LR", label: ".22 LR" },
+            { value: ".50 BMG", label: ".50 BMG" }
+        ];
+    } else if (category === "shotgun") {
+        options = [
+            { value: "12 Gauge", label: "12 Gauge" },
+            { value: "20 Gauge", label: "20 Gauge" },
+            { value: ".410 Bore", label: ".410 Bore" }
+        ];
+    } else if (category === "pcc") {
+        options = [
+            { value: "9x19mm Parabellum", label: "9x19mm Parabellum" },
+            { value: ".45 ACP", label: ".45 ACP" }
+        ];
+    }
+
+    let html = `<option value="" disabled selected>Select cartridge...</option>`;
+    options.forEach(opt => {
+        html += `<option value="${opt.value}">${opt.label}</option>`;
+    });
+    html += `<option value="other">Other...</option>`;
+
+    formCaliberSelect.innerHTML = html;
+    if (formCaliberCustom) {
+        formCaliberCustom.style.display = "none";
+        formCaliberCustom.value = "";
+    }
+}
+window.updateCaliberDropdownOptions = updateCaliberDropdownOptions;

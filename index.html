@@ -76,6 +76,16 @@
             </div>
         </section>
 
+        <!-- Handgun Subcategory Toolbar (Shown only when Handguns tab is active) -->
+        <section class="subcategory-toolbar" id="handgun-subcategory-toolbar" style="display: none; margin-bottom: 1.5rem; border-bottom: 1px dashed var(--border-light); padding-bottom: 0.75rem;">
+            <div class="subcategory-filters" style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                <span style="font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-right: 0.5rem;">Filter by:</span>
+                <button class="subfilter-btn active" data-subcategory="all">ALL HANDGUNS</button>
+                <button class="subfilter-btn" data-subcategory="pistol">PISTOLS</button>
+                <button class="subfilter-btn" data-subcategory="revolver">REVOLVERS</button>
+            </div>
+        </section>
+
         <!-- Catalog Grid -->
         <section class="catalog-grid" id="catalog-grid">
             <!-- Dynamically populated via JS -->
@@ -232,13 +242,24 @@
                             </div>
                             <div class="form-group">
                                 <label for="form-category">Category *</label>
-                                <select id="form-category" required class="hud-select">
+                                <select id="form-category" required class="hud-select" onchange="handleFormCategoryChange()">
                                     <option value="handgun">HANDGUN</option>
                                     <option value="rifle">RIFLE</option>
                                     <option value="shotgun">SHOTGUN</option>
                                     <option value="pcc">SMG/PCC</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="form-row-two" id="form-subcategory-row" style="display: none; margin-bottom: 1rem;">
+                            <div class="form-group">
+                                <label for="form-subcategory">Handgun Type *</label>
+                                <select id="form-subcategory" class="hud-select" onchange="handleFormSubcategoryChange()">
+                                    <option value="pistol">Pistol</option>
+                                    <option value="revolver">Revolver</option>
+                                </select>
+                            </div>
+                            <div class="form-group"></div>
                         </div>
 
                         <div class="form-row-two">

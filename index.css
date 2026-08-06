@@ -1482,3 +1482,29 @@ body.dark-theme .modal-backdrop {
 .remove-source-btn:hover {
     color: #ff3333;
 }
+
+/* Subcategory Filters */
+.subfilter-btn {
+    background-color: var(--bg-secondary);
+    color: var(--text-muted);
+    border: 1px solid var(--border-light);
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-radius: var(--border-radius-sm);
+    transition: all var(--transition-speed) ease;
+}
+
+.subfilter-btn:hover {
+    color: var(--accent);
+    border-color: var(--border-accent);
+}
+
+.subfilter-btn.active {
+    background-color: var(--accent-glow);
+    color: var(--accent);
+    border-color: var(--border-accent);
+    box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+}
